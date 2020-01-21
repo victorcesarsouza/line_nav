@@ -1,0 +1,10 @@
+<launch>
+	<node pkg= "tensorflow_object_detector" name="detect_ros" type="detect_ros.py"  output="screen"> 
+		<remap from="image" to="/bebop/image_raw"/> <!-- /bebop/image_raw or /usb_cam_node/image_raws-->
+	</node>
+
+	<node pkg="image_view" type="image_view" name="image_out">
+		<remap from="image" to="rcnn/debug_image"/>
+	</node>
+  
+</launch>
