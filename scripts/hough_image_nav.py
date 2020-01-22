@@ -58,7 +58,7 @@ class hough_lines:
     gray = cv2.cvtColor(resize, cv2.COLOR_BGR2GRAY) #-- remember, OpenCV stores color images in Blue, Green, Red
 
     #-- Detection de edges
-    edges = cv2.Canny(gray, 150, 200, apertureSize=3, L2gradient=True) # default (350,400)
+    edges = cv2.Canny(gray, 350, 400, apertureSize=3, L2gradient=True) # default (350,400)
 
     #-- Blur bilateral filter
     blur = cv2.bilateralFilter(edges,3,75,75)

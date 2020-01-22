@@ -6,7 +6,6 @@ import os
 import sys
 import cv2
 import numpy as np
-import pickle
 
 # ROS related imports
 import rospy
@@ -42,9 +41,9 @@ class Estimator(object):
 
             # compute odometry in a typical way given the velocities of the robot
             dt = (current_time - last_time).to_sec()
-            vy = vy + 
+            #vy = vy + 
 
-            rospy.logdebug("Altura Filtrada (out): %f", self.msg_nav.pose.pose.position.z)
+            rospy.logdebug("Altura Filtrada (out): %f", self.msg_nav.z)
             rospy.logdebug("--------------------------------")
 
             self.rcnn_pub.publish(self.msg_nav)
@@ -69,8 +68,8 @@ class Estimator(object):
         # Object search
         if len(obj) >= 1:
             for i in range(len(obj)):
-                pointy = objArray.detections[i].results[0].pose.pose.position.y
-                list_z.append(objArray.detections[i].results[0].pose.pose.position.z)
+                pointy = obj[i].results[0].pose.pose.position.y
+                list_z.append(obj[i].results[0].pose.pose.position.z)
                 #rospy.logdebug("position.y [%d]: %f", i, objArray.detections[i].results[0].pose.pose.position.y)
                 #rospy.logdebug("position.z [%d]: %f", i, objArray.detections[i].results[0].pose.pose.position.z)
                 # list y
