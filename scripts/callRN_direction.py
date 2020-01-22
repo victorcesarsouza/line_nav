@@ -7,6 +7,7 @@ roslib.load_manifest('line_nav')
 import os, sys
 import cv2, time, math
 import numpy as np
+import pickle
 
 # ROS related imports
 import rospy
@@ -15,8 +16,16 @@ from sensor_msgs.msg import CompressedImage
 from geometry_msgs.msg import Twist, Vector3
 
 PARAMETERS_PATH = os.path.join(os.path.dirname(sys.path[0]),'data','Parameters')
+        
+#pickle.dump(PARAMETERS_PATH+'/parameters_rigth_left.npy', f, protocol=2)
+#parametersLeftRigth = np.load(PARAMETERS_PATH+'/parameters_rigth_leftttttt.npy', allow_pickle=True).item()
+#output = open(PARAMETERS_PATH+'/parameters_rigth_leftttttt.npy', 'r')
+#mydict = PARAMETERS_PATH+'/parameters_rigth_leftttttt.npy'
 
-parametersLeftRigth = np.load(PARAMETERS_PATH+'/parameters_dir_esq_completo.npy', allow_pickle=True).item()
+#pickle.dump(mydict, output)
+#f = pickle.load(PARAMETERS_PATH+'/parameters_rigth_leftttttt.npy', mmap_mode='r', allow_pickle=True, fix_imports=True)
+parametersLeftRigth = np.load(f, allow_pickle=True).item()
+
 parametersCurvenonCurve = np.load(PARAMETERS_PATH+'/parameters_reta_curva_completo.npy', allow_pickle=True).item()
 
 class lines:
