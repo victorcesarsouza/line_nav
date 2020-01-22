@@ -43,8 +43,6 @@ class Estimator(object):
             # compute odometry in a typical way given the velocities of the robot
             dt = (current_time - last_time).to_sec()
             self.msg_nav.header.stamp = current_time
-            # self.msg_nav.x = 0
-            # self.msg_nav.y = 0
             rospy.logdebug("Altura Filtrada (out): %f", self.msg_nav.pose.pose.position.z)
             rospy.logdebug("--------------------------------")
 
@@ -67,7 +65,7 @@ class Estimator(object):
         # list_negativex = []
         list_positivey = []
         list_negativey = []
-        list_y = []
+        # list_y = []
         list_z = []
 
         # Object search

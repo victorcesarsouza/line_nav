@@ -19,14 +19,14 @@ class hough_lines:
  
   def __init__(self):
     #-- Create a publisher in topic "image_hough" and "nav_hough_lines"
-    self.nav_hough_lines_pub = rospy.Publisher("hough/nav_hough_lines",Twist, queue_size = 100)
+    self.nav_hough_lines_pub = rospy.Publisher("hough/nav_hough_lines",Twist, queue_size = 1)
     
-    self.image_raw_pub = rospy.Publisher("hough/image_raw/compressed", CompressedImage, queue_size = 100)
-    self.image_edge_pub = rospy.Publisher("hough/image_edge/compressed", CompressedImage, queue_size = 100)
-    # self.image_hough_pub = rospy.Publisher("hough/image_hough/compressed", CompressedImage, queue_size = 100)
+    #self.image_raw_pub = rospy.Publisher("hough/image_raw/compressed", CompressedImage, queue_size = 1)
+    self.image_edge_pub = rospy.Publisher("hough/image_edge/compressed", CompressedImage, queue_size = 1)
+    self.image_hough_pub = rospy.Publisher("hough/image_hough/compressed", CompressedImage, queue_size = 1)
 
     #-- Create a supscriber from topic "image_raw"
-    self.image_sub = rospy.Subscriber("bebop/image_raw/compressed", CompressedImage, self.callback, queue_size = 100)
+    self.image_sub = rospy.Subscriber("bebop/image_raw/compressed", CompressedImage, self.callback, queue_size = 1)
     
     #self.rate = rospy.Rate(100.0) #-- 100Hz
 
@@ -175,11 +175,11 @@ class hough_lines:
     # cv2.imshow("Image-erosion",erosion)
     # cv2.waitKey(1)
 
-    ### Create CompressedIamge ####
-    msg1 = CompressedImage()
-    #msg1.header.stamp = rospy.rostime.get_rostime()
-    msg1.format = "jpeg"
-    msg1.data = np.array(cv2.imencode('.jpg', image_np)[1]).tostring()
+    # ### Create CompressedIamge ####
+    # msg1 = CompressedImage()
+    # #msg1.header.stamp = rospy.rostime.get_rostime()
+    # msg1.format = "jpeg"
+    # msg1.data = np.array(cv2.imencode('.jpg', image_np)[1]).tostring()
 
     ## Create CompressedIamge ####
     msg2 = CompressedImage()
@@ -187,18 +187,18 @@ class hough_lines:
     msg2.format = "jpeg"
     msg2.data = np.array(cv2.imencode('.jpg', erosion)[1]).tostring()
 
-    # ## Create CompressedIamge ####
-    # msg3 = CompressedImage()
-    # #msg3.header.stamp = rospy.rostime.get_rostime()
-    # msg3.format = "jpeg"
-    # msg3.data = np.array(cv2.imencode('.jpg', resize)[1]).tostring()
+    ## Create CompressedIamge ####
+    msg3 = CompressedImage()
+    #msg3.header.stamp = rospy.rostime.get_rostime()
+    msg3.format = "jpeg"
+    msg3.data = np.array(cv2.imencode('.jpg', resize)[1]).tostring()
 
 
     # Publish new image
     try:
-      self.image_raw_pub.publish(msg1)
+      # self.image_raw_pub.publish(msg1)
       self.image_edge_pub.publish(msg2)
-      # self.image_hough_pub.publish(msg3)
+      self.image_hough_pub.publish(msg3)
 
     except:
       rospy.logdebug('No publish img!')

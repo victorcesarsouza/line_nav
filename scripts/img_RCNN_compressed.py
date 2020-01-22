@@ -16,9 +16,7 @@ except ImportError:
 
 # ROS related imports
 import rospy
-from geometry_msgs.msg import Twist, Vector3
-from sensor_msgs.msg import Image
-from cv_bridge import CvBridge, CvBridgeError
+from sensor_msgs.msg import CompressedImage
 from vision_msgs.msg import Detection2D, Detection2DArray, ObjectHypothesisWithPose
 
 # Object detection module imports
@@ -70,12 +68,11 @@ class Detector:
 
     def __init__(self):
 
-        self.image_pub = rospy.Publisher("rcnn/debug_image",Image, queue_size=1)
+        self.image_pub = rospy.Publisher("rcnn/debug_image/compressed",CompressedImage, queue_size=1)
         self.object_pub = rospy.Publisher("rcnn/objects", Detection2DArray, queue_size=1)
 
         # Create a supscriber from topic "image_raw"
-        self.bridge = CvBridge()
-        self.image_sub = rospy.Subscriber("/bebop/image_raw", Image, self.image_callback, queue_size=1)
+        self.image_sub = rospy.Subscriber("bebop/image_raw/compressed", CompressedImage, self.image_callback, queue_size=1)
         self.sess = tf.Session(graph=detection_graph,config=config)
 
         self.DIAMETER_LANDMARCK_M = rospy.get_param('~markerSize_RCNN', 0.03)
@@ -93,11 +90,13 @@ class Detector:
     def image_callback(self, data):
 
         objArray = Detection2DArray()
-        try:
-            cv_image = self.bridge.imgmsg_to_cv2(data, "bgr8")
-        except CvBridgeError as e:
-            print(e)
-        image = cv2.cvtColor(cv_image,cv2.COLOR_BGR2RGB)
+
+        np_arr = np.fromstring(data.data, np.uint8)
+        image = cv2.imdecode(np_arr, cv2.IMREAD_COLOR) # OpenCV >= 3.0:
+        
+        #-- Print 'X' in the center of the camera
+        image_height,image_width,channels = image.shape
+        cv2.putText(image, "X", (image_width/2, image_height/2), font, 1, (0, 0, 255), 2, cv2.LINE_AA)
 
         # the array based representation of the image will be used later in order to prepare the
         # result image with boxes and labels on it.
@@ -125,38 +124,28 @@ class Detector:
             category_index,
             min_score_thresh=self.MINIMUM_CONFIDENCE,
             use_normalized_coordinates=True,
-            line_thickness=4)
+            line_thickness=5)
 
         objArray.detections = []
         objArray.header = data.header
         objArray.header.frame_id = "Navigation RCNN"
-        object_count=1
 
         # Object search
         for i in range(len(objects)):
-            object_count+=1
-            objArray.detections.append(self.object_predict(objects[i],data.header,cv_image))
-            #call fuction to return z of drone
-            #z_drone = self.distanceLandmarck(objects[i],cv_image)
+            objArray.detections.append(self.object_predict(objects[i],data.header,image))
 
         self.object_pub.publish(objArray)
 
         ########################################################################################
-        # Create img to publish
-        img=cv2.cvtColor(image_np, cv2.COLOR_BGR2RGB)
-        image_out = Image()
 
-        #-- Print 'X' in the center of the camera
-        image_height,image_width,channels = img.shape
-        cv2.putText(img, "X", (image_width/2, image_height/2), font, 1, (0, 0, 255), 2, cv2.LINE_AA)
+        #### Create CompressedIamge ####
+        msg = CompressedImage()
+        #msg.header.stamp = data_ros.header.stamp
+        msg.format = "jpeg"
+        msg.data = np.array(cv2.imencode('.jpg', image)[1]).tostring()
+        # Publish new image
+        self.image_pub.publish(msg)
 
-        try:
-            image_out = self.bridge.cv2_to_imgmsg(img,"bgr8")
-        except CvBridgeError as e:
-            print(e)
-
-        image_out.header = data.header
-        self.image_pub.publish(image_out)
 
     def object_predict(self,object_data, header,image):
         image_height,image_width,channels = image.shape
@@ -217,77 +206,6 @@ class Detector:
         # rospy.logdebug("publish bbox.center y: %d", obj.bbox.center.y)
 
         return obj
-
-    # def distFocus(self,radius,object_data,image):
-    #     image_height,image_width,channels = image.shape
-    #     obj=Detection2D()
-    #     dimensions=object_data[2]
-
-    #     obj.bbox.size_y = int((dimensions[2]-dimensions[0])*image_height)
-    #     obj.bbox.size_x = int((dimensions[3]-dimensions[1] )*image_width)
-    #     obj.bbox.center.x = int((dimensions[1] + dimensions [3])*image_height/2)
-    #     obj.bbox.center.y = int((dimensions[0] + dimensions[2])*image_width/2)
-
-    #     pixelDiametro = obj.bbox.size_x
-    #     # choose the bigest size
-    #     if(obj.bbox.size_x > obj.bbox.size_y):
-    #         pixelDiametro = obj.bbox.size_x
-    #     else:
-    #         pixelDiametro = obj.bbox.size_y
-
-    #     metersDiametro = 0.24
-    #     disMeter_real = 0.60
-
-    #     distFocus = float((pixelDiametro * disMeter_real) / metersDiametro)
-
-    #     #rospy.logdebug("distFocus: %d", distFocus)
-
-    #     distFocus_real = 490
-
-    #     altura = float((metersDiametro * distFocus_real) / pixelDiametro)
-
-    #     rospy.logdebug("--------------------------------")
-    #     rospy.logdebug("metersDiametro: %f", metersDiametro)
-    #     rospy.logdebug("distFocus_real: %f", distFocus_real)
-    #     rospy.logdebug("pixelDiametro:  %f", pixelDiametro)
-    #     rospy.logdebug("altura:         %f", altura)
-    
-    #     return distFocus_real
-
-    # def distanceLandmarck(self,object_data,image):
-    #     image_height,image_width,channels = image.shape
-    #     obj=Detection2D()
-    #     obj_hypothesis= ObjectHypothesisWithPose()
-
-    #     dimensions=object_data[2]
-
-    #     obj.bbox.size_y = int((dimensions[2]-dimensions[0])*image_height)
-    #     obj.bbox.size_x = int((dimensions[3]-dimensions[1] )*image_width)
-    #     obj.bbox.center.x = int((dimensions[1] + dimensions [3])*image_height/2)
-    #     obj.bbox.center.y = int((dimensions[0] + dimensions[2])*image_width/2)
-
-    #     pixelDiametro = obj.bbox.size_x
-    #     # choose the bigest size
-    #     if(obj.bbox.size_x > obj.bbox.size_y):
-    #         pixelDiametro = obj.bbox.size_x
-    #     else:
-    #         pixelDiametro = obj.bbox.size_y
-
-    #     #self.DIAMETER_LANDMARCK_M = 0.24 OR 0.5
-    #     metersDiametroLandmarck = self.DIAMETER_LANDMARCK_M
-
-    #     #self.DISTANCE_FOCAL = 490
-    #     distFocus_real = self.DISTANCE_FOCAL
-
-    #     altura = float((metersDiametroLandmarck * distFocus_real) / pixelDiametro)
-
-    #     rospy.logdebug("--------------------------------")
-    #     rospy.logdebug("Diametro Marcador Real:  %f", metersDiametroLandmarck)
-    #     rospy.logdebug("Distancia Focal Real:    %f", distFocus_real)
-    #     rospy.logdebug("Diametro (pixel):        %f", pixelDiametro)
-    #     rospy.logdebug("Altura Drone (m):        %f", altura)
-
-    #     return altura
 
 def main(args):
     rospy.init_node('detector_node', log_level=rospy.DEBUG)
