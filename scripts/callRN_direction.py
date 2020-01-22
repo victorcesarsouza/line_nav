@@ -22,16 +22,20 @@ parametersCurvenonCurve = np.load(PARAMETERS_PATH+'/parameters_reta_curva_comple
 class lines:
  
   def __init__(self):
-    self.rnn_pub = rospy.Publisher('RNN/nav_direction', Vector3, queue_size=100)
-
-    #-- Create a supscriber from topic "image_raw"
-    self.image_sub = rospy.Subscriber("hough/image_edge/compressed", CompressedImage, self.callback, queue_size = 100)
 
     self.moviment = 0
     self.rotation = 0
 
     self.list_moviment = []
     self.list_rotation = []
+
+    self.VERBOSE = rospy.get_param('~VERBOSE', True)
+
+    # Publisher
+    self.rnn_pub = rospy.Publisher('RNN/nav_direction', Vector3, queue_size=100)
+
+    #-- Create a supscriber from topic "image_raw"
+    self.image_sub = rospy.Subscriber("hough/image_edge/compressed", CompressedImage, self.callback, queue_size = 100)
 
 ###############################################################################
    
@@ -53,8 +57,10 @@ class lines:
     out1 = int(predict_curve(img_reshape,parametersCurvenonCurve))
     out2 = int(predict_curve(img_reshape,parametersLeftRigth))
 
-    # rospy.logdebug('out1: %f"', out1)
-    # rospy.logdebug('out2: %f"', out2)
+    if self.VERBOSE == True:
+        rospy.logdebug('out1: %f"', out1)
+        rospy.logdebug('out2: %f"', out2)
+        rospy.logdebug('------------------------------')
 
     size_filter = 15
     # Filter self.moviment
@@ -82,7 +88,7 @@ class lines:
     # Filter rotation
     if len(self.list_rotation) < size_filter:
         self.list_rotation.append(out2)
-        # rospy.logdebug('Size of list Rotation: %f',len(self.list_rotation))
+        # rospy.logdebug('Size of list Rotrospy.logdebug('------------------------------')ation: %f',len(self.list_rotation))
         # rospy.logdebug('****Incomplete List Rotation')
         # rospy.logdebug('------------------------------')
         
@@ -100,17 +106,19 @@ class lines:
         if sum_rotation == size_filter:
             self.rotation = 1
 
-
-    if self.moviment == 0:
-        rospy.logdebug("Foward! (Filter)")
-    else: 
-        rospy.logdebug("Curve! (Filter)")
-        rospy.logdebug('------------------------------')
-        if self.rotation == 0:
-            rospy.logdebug("...Curve Right! (Filter)")
-        else: 
-            rospy.logdebug("...Curve Left! (Filter)")
+    if self.VERBOSE == True:
+        if self.moviment == 0:
+            rospy.logdebug("Foward! (Filter)")
             rospy.logdebug('------------------------------')
+        else: 
+            rospy.logdebug("Curve! (Filter)")
+            rospy.logdebug('------------------------------')
+            if self.rotation == 0:
+                rospy.logdebug("...Curve Right! (Filter)")
+                rospy.logdebug('------------------------------')
+            else: 
+                rospy.logdebug("...Curve Left! (Filter)")
+                rospy.logdebug('------------------------------')
 
     msg_navigation = Vector3()
     msg_navigation.x = self.moviment

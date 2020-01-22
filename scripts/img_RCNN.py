@@ -30,10 +30,10 @@ from object_detection.utils import visualization_utils as vis_util
 font = cv2.FONT_HERSHEY_PLAIN
 
 # SET FRACTION OF GPU YOU WANT TO USE HERE
-GPU_FRACTION = 0.4
+GPU_FRACTION = 0.0
 
 ######### Set model here ############
-MODEL_NAME =  'ssd_mobilenet_v1_coco'
+MODEL_NAME =  'modo_congelado'
 # By default models are stored in data/models/
 MODEL_PATH = os.path.join(os.path.dirname(sys.path[0]),'data','models' , MODEL_NAME)
 # Path to frozen detection graph. This is the actual model that is used for the object detection.
@@ -70,18 +70,20 @@ class Detector:
 
     def __init__(self):
 
-        self.image_pub = rospy.Publisher("rcnn/debug_image",Image, queue_size=100)
-        self.object_pub = rospy.Publisher("rcnn/objects", Detection2DArray, queue_size=100)
+        self.image_pub = rospy.Publisher("rcnn/debug_image",Image, queue_size=1)
+        self.object_pub = rospy.Publisher("rcnn/objects", Detection2DArray, queue_size=1)
 
         # Create a supscriber from topic "image_raw"
         self.bridge = CvBridge()
-        self.image_sub = rospy.Subscriber("/bebop/image_raw", Image, self.image_callback, queue_size=100)
+        self.image_sub = rospy.Subscriber("/bebop/image_raw", Image, self.image_callback, queue_size=1)
         self.sess = tf.Session(graph=detection_graph,config=config)
 
         self.DIAMETER_LANDMARCK_M = rospy.get_param('~markerSize_RCNN', 0.03)
         self.DISTANCE_FOCAL = rospy.get_param('~distance_focal', 740)
         self.MAX_NUMBER_OF_BOXES = rospy.get_param('~max_number_of_boxes', 6)
         self.MINIMUM_CONFIDENCE = rospy.get_param('~minimum_confidence', 0.95)
+
+        self.VERBOSE = False
 
         rospy.loginfo("%s is %f (defaut)", rospy.resolve_name('~markerSize_RCNN'), self.DIAMETER_LANDMARCK_M)
         rospy.loginfo("%s is %f (defaut)", rospy.resolve_name('~distance_focal'), self.DISTANCE_FOCAL)
