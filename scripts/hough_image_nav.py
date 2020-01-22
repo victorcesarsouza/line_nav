@@ -19,10 +19,11 @@ class hough_lines:
  
   def __init__(self):
     #-- Create a publisher in topic "image_hough" and "nav_hough_lines"
-    self.nav_hough_lines_pub = rospy.Publisher("bebop/nav_hough_lines",Twist, queue_size = 100)
+    self.nav_hough_lines_pub = rospy.Publisher("hough/nav_hough_lines",Twist, queue_size = 100)
     
-    self.image_hough_pub = rospy.Publisher("output/image_hough/compressed", CompressedImage, queue_size = 100)
-    self.image_edge_pub = rospy.Publisher("output/image_edge/compressed", CompressedImage, queue_size = 100)
+    self.image_raw_pub = rospy.Publisher("hough/image_raw/compressed", CompressedImage, queue_size = 100)
+    self.image_edge_pub = rospy.Publisher("hough/image_edge/compressed", CompressedImage, queue_size = 100)
+    # self.image_hough_pub = rospy.Publisher("hough/image_hough/compressed", CompressedImage, queue_size = 100)
 
     #-- Create a supscriber from topic "image_raw"
     self.image_sub = rospy.Subscriber("bebop/image_raw/compressed", CompressedImage, self.callback, queue_size = 100)
@@ -32,7 +33,6 @@ class hough_lines:
 ###############################################################################
    
   def callback(self,data):
-    global list_hough, pidTerm, last_error1, int_error1
 
     numLines=3
     yaw = 0
@@ -45,9 +45,9 @@ class hough_lines:
     image_np = cv2.imdecode(np_arr, cv2.IMREAD_COLOR) # OpenCV >= 3.0:
 
     # (rows,cols,channels) = image_np.shape
-    # rospy.loginfo("rows: %f",rows)
-    # rospy.loginfo("cols: %f",cols)
-    # rospy.loginfo("-------------------------")
+    # rospy.logdebug("rows: %f",rows)
+    # rospy.logdebug("cols: %f",cols)
+    # rospy.logdebug("-------------------------")
 
     #-- Resize image with INTER_CUBIC
     resize = cv2.resize(image_np, (224, 224), interpolation=cv2.INTER_CUBIC)
@@ -58,7 +58,7 @@ class hough_lines:
     gray = cv2.cvtColor(resize, cv2.COLOR_BGR2GRAY) #-- remember, OpenCV stores color images in Blue, Green, Red
 
     #-- Detection de edges
-    edges = cv2.Canny(gray, 350, 400, apertureSize=3, L2gradient=True) 
+    edges = cv2.Canny(gray, 150, 200, apertureSize=3, L2gradient=True) # default (350,400)
 
     #-- Blur bilateral filter
     blur = cv2.bilateralFilter(edges,3,75,75)
@@ -117,27 +117,27 @@ class hough_lines:
       else:
         yaw = -med_theta
 
-    # rospy.loginfo("linha 1: %f",math.degrees(lines_vector[0]))
-    # rospy.loginfo("linha 2: %f",math.degrees(lines_vector[1]))
-    # rospy.loginfo("linha 3: %f",math.degrees(lines_vector[2]))
+    # rospy.logdebug("linha 1: %f",math.degrees(lines_vector[0]))
+    # rospy.logdebug("linha 2: %f",math.degrees(lines_vector[1]))
+    # rospy.logdebug("linha 3: %f",math.degrees(lines_vector[2]))
 
-    # rospy.loginfo("Media Theta: %f",med_theta)
-    # rospy.loginfo("Valor x: %f",x)
-    # rospy.loginfo("-------------------------")
+    # rospy.logdebug("Media Theta: %f",med_theta)
+    # rospy.logdebug("Valor x: %f",x)
+    # rospy.logdebug("-------------------------")
 
     #ganho_pid = 1000
     # y in the drone of ROS = X in the image
     y_correction = float(mediana - gray.shape[1]/2)
 
-    #rospy.loginfo("half_img: %f",gray.shape[1]/2)
-    #rospy.loginfo("mediana: %f",mediana)
-    #rospy.loginfo("y(raw): %f",y_correction)
+    #rospy.logdebug("half_img: %f",gray.shape[1]/2)
+    #rospy.logdebug("mediana: %f",mediana)
+    #rospy.logdebug("y(raw): %f",y_correction)
 
-    #rospy.loginfo("yaw(raw): %f",yaw)
-    #rospy.loginfo("-------------------------")
+    #rospy.logdebug("yaw(raw): %f",yaw)
+    #rospy.logdebug("-------------------------")
 
-    # rospy.loginfo("linha 2: %f",math.degrees(lines_vector[1]))
-    # rospy.loginfo("linha 3: %f",math.degrees(lines_vector[2]))
+    # rospy.logdebug("linha 2: %f",math.degrees(lines_vector[1]))
+    # rospy.logdebug("linha 3: %f",math.degrees(lines_vector[2]))
 
 
     nav_drone = Twist()
@@ -161,9 +161,9 @@ class hough_lines:
 
     try:
       self.nav_hough_lines_pub.publish(nav_drone)
-      #rospy.loginfo('Is publish!')
+      #rospy.logdebug('Is publish!')
     except:
-      rospy.loginfo('No publish!')
+      rospy.logdebug('No publish!')
 
     #cv2.imshow("Image",src_image)
     #cv2.imshow("Image-edges",edges)
@@ -179,7 +179,7 @@ class hough_lines:
     msg1 = CompressedImage()
     #msg1.header.stamp = rospy.rostime.get_rostime()
     msg1.format = "jpeg"
-    msg1.data = np.array(cv2.imencode('.jpg', resize)[1]).tostring()
+    msg1.data = np.array(cv2.imencode('.jpg', image_np)[1]).tostring()
 
     ## Create CompressedIamge ####
     msg2 = CompressedImage()
@@ -187,14 +187,21 @@ class hough_lines:
     msg2.format = "jpeg"
     msg2.data = np.array(cv2.imencode('.jpg', erosion)[1]).tostring()
 
+    # ## Create CompressedIamge ####
+    # msg3 = CompressedImage()
+    # #msg3.header.stamp = rospy.rostime.get_rostime()
+    # msg3.format = "jpeg"
+    # msg3.data = np.array(cv2.imencode('.jpg', resize)[1]).tostring()
+
 
     # Publish new image
     try:
-      self.image_hough_pub.publish(msg1)
+      self.image_raw_pub.publish(msg1)
       self.image_edge_pub.publish(msg2)
-    except:
-      rospy.loginfo('No publish img!')
+      # self.image_hough_pub.publish(msg3)
 
+    except:
+      rospy.logdebug('No publish img!')
 
 ###############################################################################
 
@@ -202,7 +209,7 @@ def main(args):
 
   ic = hough_lines()
   #-- Name of node
-  rospy.init_node('hough',log_level=rospy.DEBUG)
+  rospy.init_node('hough_node',log_level=rospy.DEBUG)
 
   try:
       rospy.spin()

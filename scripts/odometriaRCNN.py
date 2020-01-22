@@ -6,13 +6,6 @@ import os
 import sys
 import cv2
 import numpy as np
-# try:
-#     import tensorflow as tsf
-# except ImportError:
-#     print("unable to import TensorFlow. Is it installed?")
-#     print("  sudo apt install python-pip")
-#     print("  sudo pip install tensorflow")
-#     sys.exit(1)
 
 # ROS related imports
 import rospy

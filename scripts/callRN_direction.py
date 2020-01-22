@@ -14,12 +14,6 @@ from sensor_msgs.msg import Image
 from sensor_msgs.msg import CompressedImage
 from geometry_msgs.msg import Twist, Vector3
 
-moviment = 0
-rotation = 0
-
-list_moviment = []
-list_rotation = []
-
 PARAMETERS_PATH = os.path.join(os.path.dirname(sys.path[0]),'data','Parameters')
 
 parametersLeftRigth = np.load(PARAMETERS_PATH+'/parameters_dir_esq_completo.npy', allow_pickle=True).item()
@@ -28,18 +22,22 @@ parametersCurvenonCurve = np.load(PARAMETERS_PATH+'/parameters_reta_curva_comple
 class lines:
  
   def __init__(self):
-    self.rnn_pub = rospy.Publisher('bebop/nav_rnn', Vector3, queue_size=100)
+    self.rnn_pub = rospy.Publisher('RNN/nav_direction', Vector3, queue_size=100)
 
     #-- Create a supscriber from topic "image_raw"
-    self.image_sub = rospy.Subscriber("bebop/image_edge/compressed", CompressedImage, self.callback, queue_size = 100)
+    self.image_sub = rospy.Subscriber("hough/image_edge/compressed", CompressedImage, self.callback, queue_size = 100)
 
+    self.moviment = 0
+    self.rotation = 0
+
+    self.list_moviment = []
+    self.list_rotation = []
 
 ###############################################################################
    
   def callback(self,data):
-    global moviment, rotation, list_rotation, list_moviment
 
-    # rospy.loginfo('received image of type: "%s"' % data.format)
+    # rospy.logdebug('received image of type: "%s"' % data.format)
 
     np_arr = np.fromstring(data.data, np.uint8)
     #image_np = cv2.imdecode(np_arr, cv2.CV_LOAD_IMAGE_COLOR)
@@ -55,68 +53,68 @@ class lines:
     out1 = int(predict_curve(img_reshape,parametersCurvenonCurve))
     out2 = int(predict_curve(img_reshape,parametersLeftRigth))
 
-    # rospy.loginfo('out1: %f"', out1)
-    # rospy.loginfo('out2: %f"', out2)
+    # rospy.logdebug('out1: %f"', out1)
+    # rospy.logdebug('out2: %f"', out2)
 
     size_filter = 15
-    # Filter moviment
-    if len(list_moviment) < size_filter:
-        list_moviment.append(out1)
-        # rospy.loginfo('Size of list: %f',len(list_moviment))
-        # rospy.loginfo('****Incomplete List Moviment')
-        # rospy.loginfo('------------------------------')
+    # Filter self.moviment
+    if len(self.list_moviment) < size_filter:
+        self.list_moviment.append(out1)
+        # rospy.logdebug('Size of list: %f',len(list_self.moviment))
+        # rospy.logdebug('****Incomplete List self.Moviment')
+        # rospy.logdebug('------------------------------')
         
     else:
-        list_moviment.append(out1)
-        del list_moviment[0]
-        sum_foward = sum(list_moviment)
-        # rospy.loginfo('Size of list Moviment: %f',len(list_moviment))
-        # rospy.loginfo('Sum List Moviment: %f',sum_foward)
+        self.list_moviment.append(out1)
+        del self.list_moviment[0]
+        sum_foward = sum(self.list_moviment)
+        # rospy.logdebug('Size of list self.Moviment: %f',len(list_self.moviment))
+        # rospy.logdebug('Sum List self.Moviment: %f',sum_foward)
 
         if sum_foward == 0:
-            moviment = 0
-            list_rotation = []
+            self.moviment = 0
+            self.list_rotation = []
             ###### LIMPAR vetor list rotation
             
         if sum_foward == size_filter:
-            moviment = 1
+            self.moviment = 1
 
     # Filter rotation
-    if len(list_rotation) < size_filter:
-        list_rotation.append(out2)
-        # rospy.loginfo('Size of list Rotation: %f',len(list_rotation))
-        # rospy.loginfo('****Incomplete List Rotation')
-        # rospy.loginfo('------------------------------')
+    if len(self.list_rotation) < size_filter:
+        self.list_rotation.append(out2)
+        # rospy.logdebug('Size of list Rotation: %f',len(self.list_rotation))
+        # rospy.logdebug('****Incomplete List Rotation')
+        # rospy.logdebug('------------------------------')
         
     else:
-        list_rotation.append(out2)
-        del list_rotation[0]
-        sum_rotation = sum(list_rotation)
-        # rospy.loginfo('Size of list Rotation: %f',len(list_rotation))
-        #rospy.loginfo('Complete list: [%f %f %f %f %f]',list_out[0],list_out[1],list_out[2],list_out[3],list_out[4])
-        # rospy.loginfo('Sum List Rotation: %f',sum_rotation)
+        self.list_rotation.append(out2)
+        del self.list_rotation[0]
+        sum_rotation = sum(self.list_rotation)
+        # rospy.logdebug('Size of list Rotation: %f',len(self.list_rotation))
+        #rospy.logdebug('Complete list: [%f %f %f %f %f]',list_out[0],list_out[1],list_out[2],list_out[3],list_out[4])
+        # rospy.logdebug('Sum List Rotation: %f',sum_rotation)
 
         if sum_rotation == 0:
-            rotation = 0
+            self.rotation = 0
             
         if sum_rotation == size_filter:
-            rotation = 1
+            self.rotation = 1
 
 
-    if moviment == 0:
-        rospy.loginfo("Foward! (Filter)")
+    if self.moviment == 0:
+        rospy.logdebug("Foward! (Filter)")
     else: 
-        rospy.loginfo("Curve! (Filter)")
-        rospy.loginfo('------------------------------')
-        if rotation == 0:
-            rospy.loginfo("...Curve Right! (Filter)")
+        rospy.logdebug("Curve! (Filter)")
+        rospy.logdebug('------------------------------')
+        if self.rotation == 0:
+            rospy.logdebug("...Curve Right! (Filter)")
         else: 
-            rospy.loginfo("...Curve Left! (Filter)")
-            rospy.loginfo('------------------------------')
+            rospy.logdebug("...Curve Left! (Filter)")
+            rospy.logdebug('------------------------------')
 
     msg_navigation = Vector3()
-    msg_navigation.x = moviment
-    msg_navigation.y = rotation
+    msg_navigation.x = self.moviment
+    msg_navigation.y = self.rotation
     msg_navigation.z = 0
 
     #cv2.imshow("Image-edges",image_np_gray)
@@ -125,7 +123,7 @@ class lines:
     try:
       self.rnn_pub.publish(msg_navigation)
     except:
-      rospy.loginfo('No publish!')
+      rospy.logdebug('No publish!')
 
   
 ###############################################################################
@@ -288,7 +286,7 @@ def linear_forward(A, W, b):
     cache -- a python dictionary containing "A", "W" and "b" ; stored for computing the backward pass efficiently
     """
     
-    # rospy.loginfo("******DEBUG******")
+    # rospy.logdebug("******DEBUG******")
     # print("A-Shape: ",A.shape)
     # print("W-Shape: ",W.shape)
     # print("b-Shape: ",b.shape)
