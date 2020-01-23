@@ -102,7 +102,6 @@ class hough_lines:
                         y2 = int(y0 - 1000*(a))
    
                         cv2.line(resize, (x1, y1), (x2, y2), (0, 0, 255), 2)
-                        #cv2.line(erosion, (x1, y1), (x2, y2), (0, 0, 255), 2)
                         
                         med_theta = med_theta + (theta/numLines)
                         lines_vector[i] = theta
@@ -128,11 +127,10 @@ class hough_lines:
     # rospy.logdebug("Valor x: %f",x)
     # rospy.logdebug("-------------------------")
 
-    #ganho_pid = 1000
     # y in the drone of ROS = X in the image
-    y_correction = float(mediana - gray.shape[1]/2)
+    y_correction = float(mediana - erosion.shape[1]/2)/self.ky
 
-    #rospy.logdebug("half_img: %f",gray.shape[1]/2)
+    #rospy.logdebug("half_img: %f",erosion.shape[1]/2)
     #rospy.logdebug("mediana: %f",mediana)
     ####################################################
     # covert y_correction in Yreal
@@ -150,15 +148,12 @@ class hough_lines:
     # rospy.logdebug("-------------------------")
     ####################################################
 
-    # rospy.logdebug("linha 2: %f",math.degrees(lines_vector[1]))
-    # rospy.logdebug("linha 3: %f",math.degrees(lines_vector[2]))
-
 
     nav_drone = Twist()
 
     if lines is not None:
       nav_drone.linear.x = 0
-      nav_drone.linear.y = y_correction/self.ky
+      nav_drone.linear.y = y_correction
       nav_drone.linear.z = 0
 
       nav_drone.angular.x = 0

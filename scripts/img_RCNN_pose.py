@@ -5,6 +5,7 @@
 import os
 import sys
 import cv2
+import rospy
 import numpy as np
 try:
     import tensorflow as tf
@@ -15,10 +16,8 @@ except ImportError:
     sys.exit(1)
 
 # ROS related imports
-import rospy
-from geometry_msgs.msg import Twist, Vector3
 from sensor_msgs.msg import CompressedImage
-#from vision_msgs.msg import Detection2D, Detection2DArray, ObjectHypothesisWithPose
+from geometry_msgs.msg import Twist, Vector3
 
 # Object detection module imports
 import object_detection
@@ -64,8 +63,8 @@ category_index = label_map_util.create_category_index(categories)
 config = tf.ConfigProto()
 config.gpu_options.per_process_gpu_memory_fraction = GPU_FRACTION
 
-# Detection
-class Detector:
+# RCNN
+class RCNN:
 
     def __init__(self):
 
@@ -220,8 +219,9 @@ class Detector:
         list_z.append(pointz)
 
 def main(args):
-    rospy.init_node('detector_node', log_level=rospy.DEBUG)
-    obj=Detector()
+    rospy.init_node('rcnn_pose_node', log_level=rospy.DEBUG)
+    rcnn_pose = RCNN()
+    
     try:
         rospy.spin()
     except KeyboardInterrupt:
