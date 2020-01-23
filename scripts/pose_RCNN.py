@@ -109,6 +109,8 @@ class Estimator(object):
                 # self.msg_nav.y = medy_ant_n
                 negativey = True
 
+
+
         if negativey == True:
             self.msg_nav.y = medy_ant_n
             # rospy.logdebug("negativey(T) y: %f", self.msg_nav.y)
