@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import print_function
 ## Author: Alan Tavares
 ## Date: August, 12, 2019
 # Purpose: Ros node to detect objects using tensorflow
@@ -7,6 +8,8 @@ import sys, time, math
 import cv2
 import numpy as np
 import rospy
+import roslib
+roslib.load_manifest('line_nav')
 
 from sensor_msgs.msg import Image
 from sensor_msgs.msg import CompressedImage

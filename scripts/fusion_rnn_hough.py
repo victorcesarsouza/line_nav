@@ -15,12 +15,13 @@ from geometry_msgs.msg import Twist, Vector3
 class Navigation:
  
   def __init__(self):
-        self.VERBOSE = True
+
+        self.VERBOSE = False
         self.msg_hough = Twist()
         
         #############################################################################
         # Publishers
-        self.nav_pub = rospy.Publisher('navigation/nav_drone2', Twist, queue_size=10)
+        self.nav_pub = rospy.Publisher('navigation/nav_position', Twist, queue_size=10)
 
         # Subscribers
         self.hough_sub = rospy.Subscriber("hough/nav_hough_lines", Twist, self.houghCallback, queue_size=10)
@@ -89,10 +90,9 @@ class Navigation:
 ###############################################################################
 
 def main(args):
-
-  ic = Navigation()
   #-- Name of node
   rospy.init_node('navigation_node',log_level=rospy.DEBUG)
+  ic = Navigation()
 
   try:
       rospy.spin()
