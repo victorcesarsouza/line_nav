@@ -1,15 +1,12 @@
 #!/usr/bin/env python
-from __future__ import print_function
- 
-import roslib
-roslib.load_manifest('line_nav')
-
+## Author: Alan Tavares
+## Date: August, 12, 2019
+# Purpose: Ros node to detect objects using tensorflow
+import os
 import sys, time, math
-import rospy
 import cv2
-
-# numpy and scipy
 import numpy as np
+import rospy
 
 from sensor_msgs.msg import Image
 from sensor_msgs.msg import CompressedImage
@@ -28,7 +25,11 @@ class hough_lines:
     #-- Create a supscriber from topic "image_raw"
     self.image_sub = rospy.Subscriber("bebop/image_raw/compressed", CompressedImage, self.callback, queue_size = 1)
     
-    #self.rate = rospy.Rate(100.0) #-- 100Hz
+    self.MIN_EDGE = rospy.get_param('~min_edge', 150)
+    self.MAX_EDGE = rospy.get_param('~max_edge', 200)
+
+    rospy.loginfo("%s is %f (defaut)", rospy.resolve_name('~min_edge'), self.MIN_EDGE)
+    rospy.loginfo("%s is %f (defaut)", rospy.resolve_name('~max_edge'), self.MAX_EDGE)
 
 ###############################################################################
    
@@ -58,7 +59,7 @@ class hough_lines:
     gray = cv2.cvtColor(resize, cv2.COLOR_BGR2GRAY) #-- remember, OpenCV stores color images in Blue, Green, Red
 
     #-- Detection de edges
-    edges = cv2.Canny(gray, 350, 400, apertureSize=3, L2gradient=True) # default (350,400)
+    edges = cv2.Canny(gray, self.MIN_EDGE, self.MAX_EDGE, apertureSize=3, L2gradient=True) # default (350,400)
 
     #-- Blur bilateral filter
     blur = cv2.bilateralFilter(edges,3,75,75)
@@ -143,7 +144,7 @@ class hough_lines:
     nav_drone = Twist()
 
     if lines is not None:
-      nav_drone.linear.x = 0.02
+      nav_drone.linear.x = 0
       nav_drone.linear.y = y_correction
       nav_drone.linear.z = 0
 

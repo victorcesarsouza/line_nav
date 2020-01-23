@@ -112,7 +112,7 @@ catkin_package(
 #  DEPENDS system_lib
 )
 
-catkin_install_python(PROGRAMS scripts/callRN_direction.py scripts/hough_image_nav.py scripts/img_RCNN.py
+catkin_install_python(PROGRAMS scripts/callRN_direction.py scripts/controll_system.py scripts/fusion_rcnn_hough.py scripts/hough_image_nav.py scripts/img_RCNN_compressed.py scripts/pose_RCNN.py
 			DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 ###########
 ## Build ##

@@ -34,13 +34,13 @@ class lines:
     self.list_moviment = []
     self.list_rotation = []
 
-    self.VERBOSE = rospy.get_param('~VERBOSE', True)
+    self.VERBOSE = rospy.get_param('~VERBOSE', False)
 
     # Publisher
-    self.rnn_pub = rospy.Publisher('RNN/nav_direction', Vector3, queue_size=100)
+    self.rnn_pub = rospy.Publisher('RNN/nav_direction', Vector3, queue_size=1)
 
     #-- Create a supscriber from topic "image_raw"
-    self.image_sub = rospy.Subscriber("hough/image_edge/compressed", CompressedImage, self.callback, queue_size = 100)
+    self.image_sub = rospy.Subscriber("hough/image_edge/compressed", CompressedImage, self.callback, queue_size = 1)
 
 ###############################################################################
    
