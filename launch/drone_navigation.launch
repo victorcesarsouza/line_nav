@@ -10,9 +10,7 @@
 
 	<node pkg= "line_nav" name="callRNN_direction" type="callRNN_direction.py"  output="screen" />
 
-	<!-- <node pkg= "line_nav" name="img_RCNN_compressed" type="img_RCNN_compressed.py"  output="screen" /> -->
-
-	<!-- <node pkg= "line_nav" name="pose_RCNN" type="pose_RCNN.py"  output="screen" /> -->
+	<node pkg= "line_nav" name="img_RCNN_pose" type="img_RCNN_pose.py"  output="screen" />
 
 	<!-- <node pkg= "line_nav" name="fusion_rcnn_hough" type="fusion_rcnn_hough.py"  output="screen" /> -->
 
