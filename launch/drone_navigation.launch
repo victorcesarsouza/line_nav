@@ -1,7 +1,7 @@
 <launch>
 
-	<arg name="min"  default="150"/>
-  	<arg name="max"  default="250"/>
+	<arg name="min"  default="350"/>
+  	<arg name="max"  default="400"/>
 
 	<node pkg= "line_nav" name="hough_image_nav" type="hough_image_nav.py"  output="screen" >
 		<param name="min_edge" value="$(arg min)"/>
@@ -12,7 +12,7 @@
 
 	<node pkg= "line_nav" name="img_RCNN_pose" type="img_RCNN_pose.py"  output="screen" />
 
-	<!-- <node pkg= "line_nav" name="fusion_rcnn_hough" type="fusion_rcnn_hough.py"  output="screen" /> -->
+	<node pkg= "line_nav" name="fusion_rnn_hough" type="fusion_rnn_hough.py"  output="screen" />
 
 
 	<!-- <node name="rviz" pkg="rviz" type="rviz" args="-d $(find line_nav)/rviz/rviz_config_hough.rviz"/> -->
