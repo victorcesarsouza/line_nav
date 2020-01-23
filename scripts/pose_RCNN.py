@@ -48,6 +48,9 @@ class Estimator(object):
         #     Vcy = (current_x - last_x)/dt
         #     Vout_y = (Vref - Vcy)
 
+        # Yreal = (Ysp*Zreal)/k
+        # k = (Ysp*Zreal)/Yreal
+
         #     rospy.logdebug("Vout_x (out): %f", Vout_y)
         #     rospy.logdebug("X Filtrada (out): %f", self.msg_nav.y)
         #     rospy.logdebug("Z Filtred (out): %f", self.msg_nav.z)

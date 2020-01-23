@@ -184,12 +184,12 @@ class Detector:
         pixel_x = int((obj.bbox.center.x-(image_width/2))*(-1))
         pixel_y = int((obj.bbox.center.y-(image_height/2))*(1))
 
-        if self.VERBOSE == True:
-            rospy.logdebug("Diametro Marcador Real (instante):  %f", metersDiametroLandmarck)
-            rospy.logdebug("Distancia Focal Real:    %f", distFocus_real)
-            rospy.logdebug("Diametro (pixel):        %f", pixelDiametro)
-            rospy.logdebug("Altura Drone (instante):        %f", altura)
-            rospy.logdebug("--------------------------------")
+        # if self.VERBOSE == True:
+        #     rospy.logdebug("Diametro Marcador Real (instante):  %f", metersDiametroLandmarck)
+        #     rospy.logdebug("Distancia Focal Real:    %f", distFocus_real)
+        #     rospy.logdebug("Diametro (pixel):        %f", pixelDiametro)
+        #     rospy.logdebug("Altura Drone (instante):        %f", altura)
+        #     rospy.logdebug("--------------------------------")
 
         ###################################################################################
         
@@ -200,12 +200,12 @@ class Detector:
         obj_hypothesis.pose.pose.position.z = altura
         obj.results.append(obj_hypothesis)
 
-        if self.VERBOSE == True:
-            rospy.logdebug("publish obj_hypothesis.score: %d", object_score)
-            rospy.logdebug("publish bbox.size x: %d", obj.bbox.size_x)
-            rospy.logdebug("publish bbox.size y: %d", obj.bbox.size_y)
-            rospy.logdebug("publish bbox.center x: %d", obj.bbox.center.x)
-            rospy.logdebug("publish bbox.center y: %d", obj.bbox.center.y)
+        # if self.VERBOSE == True:
+        #     rospy.logdebug("publish obj_hypothesis.score: %d", object_score)
+        #     rospy.logdebug("publish bbox.size x: %d", obj.bbox.size_x)
+        #     rospy.logdebug("publish bbox.size y: %d", obj.bbox.size_y)
+        #     rospy.logdebug("publish bbox.center x: %d", obj.bbox.center.x)
+        #     rospy.logdebug("publish bbox.center y: %d", obj.bbox.center.y)
 
         return obj
 

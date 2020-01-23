@@ -25,6 +25,8 @@ class hough_lines:
     #-- Create a supscriber from topic "image_raw"
     self.image_sub = rospy.Subscriber("bebop/image_raw/compressed", CompressedImage, self.callback, queue_size = 1)
     
+    self.ky = 52
+
     self.MIN_EDGE = rospy.get_param('~min_edge', 150)
     self.MAX_EDGE = rospy.get_param('~max_edge', 200)
 
@@ -132,10 +134,21 @@ class hough_lines:
 
     #rospy.logdebug("half_img: %f",gray.shape[1]/2)
     #rospy.logdebug("mediana: %f",mediana)
-    #rospy.logdebug("y(raw): %f",y_correction)
+    ####################################################
+    # covert y_correction in Yreal
 
-    #rospy.logdebug("yaw(raw): %f",yaw)
-    #rospy.logdebug("-------------------------")
+    # rospy.logdebug("y(raw): %f",y_correction)
+    # Zreal = 0.31
+    # Ynoparameter = y_correction
+    # Yreal = 0.28
+    # k = (Ynoparameter*Zreal)/Yreal
+    # rospy.logdebug("Ky: %f",k)
+    # ky = 52
+    # Yreal = (Ynoparameter*Zreal)/ky
+    # rospy.logdebug("y(Real): %f (m)", Yreal)
+    # rospy.logdebug("yaw(raw): %f",yaw)
+    # rospy.logdebug("-------------------------")
+    ####################################################
 
     # rospy.logdebug("linha 2: %f",math.degrees(lines_vector[1]))
     # rospy.logdebug("linha 3: %f",math.degrees(lines_vector[2]))
@@ -145,7 +158,7 @@ class hough_lines:
 
     if lines is not None:
       nav_drone.linear.x = 0
-      nav_drone.linear.y = y_correction
+      nav_drone.linear.y = y_correction/self.ky
       nav_drone.linear.z = 0
 
       nav_drone.angular.x = 0

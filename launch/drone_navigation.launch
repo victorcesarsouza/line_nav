@@ -12,9 +12,9 @@
 
 	<node pkg= "line_nav" name="img_RCNN_compressed" type="img_RCNN_compressed.py"  output="screen" />
 
-	<node pkg= "line_nav" name="pose_RCNN" type="pose_RCNN.py"  output="screen" />
+	<!-- <node pkg= "line_nav" name="pose_RCNN" type="pose_RCNN.py"  output="screen" /> -->
 
-	<node pkg= "line_nav" name="fusion_rcnn_hough" type="fusion_rcnn_hough.py"  output="screen" />
+	<!-- <node pkg= "line_nav" name="fusion_rcnn_hough" type="fusion_rcnn_hough.py"  output="screen" /> -->
 
 
 	<!-- <node name="rviz" pkg="rviz" type="rviz" args="-d $(find line_nav)/rviz/rviz_config_hough.rviz"/> -->
