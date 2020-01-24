@@ -9,6 +9,7 @@ import cv2
 import numpy as np
 import rospy
 import roslib
+import math
 roslib.load_manifest('line_nav')
 
 from sensor_msgs.msg import Image
@@ -174,7 +175,7 @@ class hough_lines:
 
       nav_drone.angular.x = 0
       nav_drone.angular.y = 0
-      nav_drone.angular.z = yaw*(np.pi/180)
+      nav_drone.angular.z = math.radians(yaw)
     else:
       nav_drone.linear.x = 0
       nav_drone.linear.y = 0

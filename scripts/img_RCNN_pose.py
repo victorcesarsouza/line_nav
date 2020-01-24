@@ -134,26 +134,29 @@ class RCNN:
             for i in range(len(objects)):
                 self.object_predict(objects[i],image_height,image_width,list_positivey,list_negativey,list_z)
 
-            medz_ant = sum(list_z)/len(list_z)
-            msg_nav.z = medz_ant
+            msg_nav.z = sum(list_z)/len(list_z)
+            #msg_nav.z = medz_ant
 
             # negativey == True
             if len(list_negativey) > 0:
                 # mean of list x-
-                medy_ant_n = sum(list_negativey)/len(list_negativey)
+                msg_nav.x = sum(list_negativey)/len(list_negativey)
                 # rospy.logdebug("negativey == True: %f", medy_ant_n)
-                msg_nav.x = medy_ant_n
+                #msg_nav.x = medy_ant_n
 
             # negativey == False and positivey == True
             elif len(list_positivey) > 0 and len(list_negativey) == 0:
                 # mean of list x+
-                medy_ant_p = sum(list_positivey)/len(list_positivey)
+                msg_nav.x = sum(list_positivey)/len(list_positivey)
                 # rospy.logdebug("negativey == False and positivey == True: %f", medy_ant_p)
-                msg_nav.x = medy_ant_p
+                #msg_nav.x = medy_ant_p
             else:
                 msg_nav.x = 0
                 # rospy.logdebug("negativey == False and positivey == False: %f", msg_nav.x)
-                rospy.logdebug("--------------------------------")
+                # rospy.logdebug("--------------------------------")
+        else:
+            msg_nav.x = 0
+            msg_nav.z = 0
 
         self.rcnn_pub.publish(msg_nav)
         # rospy.logdebug("Altura Filtrada (out): %f", msg_nav.z)

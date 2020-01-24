@@ -6,6 +6,7 @@ import os
 import sys
 import cv2
 import numpy as np
+import math
 
 # ROS related imports
 import rospy
@@ -16,7 +17,7 @@ class Navigation:
  
   def __init__(self):
 
-        self.VERBOSE = False
+        self.VERBOSE = True
         self.msg_hough = Twist()
         
         #############################################################################
@@ -54,7 +55,7 @@ class Navigation:
 
                 velocity.angular.x = 0
                 velocity.angular.y = 0
-                velocity.angular.z = 8*(np.pi/180)
+                velocity.angular.z = math.radians(8)
                 if self.VERBOSE == True:
                     rospy.logdebug("...Left-yaw: %f deg/s",velocity.angular.z*(180/np.pi))
                     rospy.logdebug("-------------------------")
@@ -66,7 +67,7 @@ class Navigation:
 
                 velocity.angular.x = 0
                 velocity.angular.y = 0
-                velocity.angular.z = -8*(np.pi/180)
+                velocity.angular.z = math.radians(-8)
                 if self.VERBOSE == True:
                     rospy.logdebug("...Right-yaw: %f deg/s",velocity.angular.z*(180/np.pi))
                     rospy.logdebug("-------------------------")
@@ -82,7 +83,7 @@ class Navigation:
             velocity.angular.z = self.msg_hough.angular.z
             if self.VERBOSE == True:
                 rospy.logdebug('Y-raw  : %f', velocity.linear.y)
-                rospy.logdebug('Yaw-raw: %f', velocity.angular.z)
+                rospy.logdebug('Yaw-raw: %f', math.degrees(velocity.angular.z))
                 rospy.logdebug("-------------------------")
 
         self.nav_pub.publish(velocity)

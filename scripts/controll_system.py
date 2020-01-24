@@ -17,7 +17,7 @@ import numpy as np
 from std_msgs.msg import Empty
 from std_msgs.msg import String
 from nav_msgs.msg import Odometry, Path
-from geometry_msgs.msg import Point, Quaternion, Twist, Vector3
+from geometry_msgs.msg import Point, Pose, Quaternion, Twist, Vector3
 
 vel_hough = Twist()
 pose_rcnn = Vector3()
@@ -53,7 +53,7 @@ def moveCamera():
   cam_twist.angular.y = -84
   cam_twist.angular.z = 0
   cam_pub.publish(cam_twist)
-  rospy.loginfo('angle_camera: ',cam_twist.angular.y)
+  rospy.loginfo('angle_camera: %f',cam_twist.angular.y)
 
   return cam_twist.angular.y
 
@@ -78,6 +78,9 @@ def autoNavigation():
 
   init = True
   navigation = True
+  Keyframe = 0
+
+  current_x = 0
 
   current_time = rospy.Time.now()
   last_time = rospy.Time.now()
@@ -95,10 +98,16 @@ def autoNavigation():
     Kix = 0.05  #0.0001
     Kdx = 0.005  #0.5
     #Erro of Vx
-    current_x = pose_rcnn.x
+    if(pose_rcnn.x != 0):
+        current_x = pose_rcnn.x
+        # rospy.loginfo('current_x ok!')
+    else:
+        current_x = Vref
+        Vcx = 0.02
+        # rospy.loginfo('current_x Nonve! Call Vref')
     # rospy.loginfo('current_x: %f',current_x)
 
-    if init == False and dt > 0:
+    if init == False and dt > 0 and Vcx != Vref:
         Vcx = float((current_x-last_x)/dt)
         # rospy.loginfo('Vcx: %f and dt %f',Vcx, dt)
 
@@ -122,13 +131,14 @@ def autoNavigation():
 
     #######################################################################
     #Gain controll Y
-    Kpy = 0.001  #0.07
-    Kiy = 0.0001  #0.0001
-    Kdy = 0.00001  #0.5
+    Kpy = 0.01  #0.07
+    Kiy = 0.0005  #0.0001
+    Kdy = 0.00005  #0.5
     #Erro of Y
     y_raw = vel_hough.linear.y
+    # rospy.loginfo('y_raw: %f',y_raw)
     erro_y = y_raw
-    if abs(erro_y) > 5:
+    if abs(erro_y) > 0.1:
         new_y = Kpy*erro_y + Kiy*int_error_y + Kdy*(erro_y-last_error_y)
         int_error_y += erro_y
         last_error_y = erro_y
@@ -142,12 +152,18 @@ def autoNavigation():
         #rospy.loginfo("-------------------------")
     #######################################################################
     # Gain controll Z
-    z_raw = pose_rcnn.z
-    # rospy.loginfo('z_raw: %f',z_raw)
     kpz = 0.1
     Kiz = 0.001
     Kdz = 0.0001
     set_point = 1.0
+    # Recive pose Z
+    if(pose_rcnn.z != 0):
+        z_raw = pose_rcnn.z
+        # rospy.loginfo('z_raw ok!')
+    else:
+        z_raw = set_point
+        # rospy.loginfo('z_raw Nonve! Call set_point')
+    # rospy.logdebug('z_raw: %f',z_raw)
     #Erro of Z
     erro_z = float(set_point - z_raw)
     #rospy.loginfo("erro_z %f", erro_z)
@@ -166,23 +182,24 @@ def autoNavigation():
         #rospy.loginfo("-------------------------")
     #######################################################################
     #Gain controll Yaw
-    Kp = 0.6  #2.0
-    Ki = 0.001  #0.1
-    Kd = 0.1  #0.5
+    Kp = 0.6  #0.6
+    Ki = 0.001  #0.001
+    Kd = 0.0001  #0.0001
     #Erro of Yaw
-    yaw_raw = vel_hough.linear.y
+    yaw_raw = math.degrees(vel_hough.angular.z)
+    # rospy.loginfo('yaw_raw: %f',yaw_raw)
     erro_yaw = yaw_raw
 
-    if abs(erro_yaw) > 3:
-        new_yaw = Kp*erro_yaw + Ki*int_error_yaw #+ Kd*(erro_yaw-last_error_yaw)
+    if abs(erro_yaw) > 4:
+        new_yaw = Kp*erro_yaw #+ Ki*int_error_yaw #+ Kd*(erro_yaw-last_error_yaw)
         int_error_yaw += erro_yaw
-        #last_error_yaw = erro_yaw
+        last_error_yaw = erro_yaw
         # rospy.loginfo('new_yaw: %f',new_yaw)
         # rospy.loginfo("-------------------------")
     else:
         new_yaw = 0
         int_error_yaw = 0
-        #last_error1 = 0
+        last_error1 = 0
         # rospy.loginfo('new_yaw: %f',new_yaw)
         # rospy.loginfo("-------------------------")
     
@@ -199,14 +216,14 @@ def autoNavigation():
 
     init = False
 
-    rospy.loginfo("Navigation")
+    # rospy.loginfo("Navigation")
     velocity.linear.x = new_x
     velocity.linear.y = -new_y
     velocity.linear.z = new_z
 
     velocity.angular.x = 0
     velocity.angular.y = 0
-    velocity.angular.z = new_yaw*(np.pi/180)
+    velocity.angular.z = math.radians(new_yaw)
 
     rospy.loginfo('vel_linear  x: %f', new_x)
     rospy.loginfo('vel_linear  y: %f', -new_y)
@@ -215,7 +232,31 @@ def autoNavigation():
     rospy.loginfo("-------------------------")
 
     vel_drone_pub.publish(velocity)
+
+    drone_odom = Odometry()
+    drone_odom.header.stamp = rospy.Time.now()
+    drone_odom.header.frame_id = "odom_nav"
+    drone_odom.header.seq = Keyframe
+    drone_odom.child_frame_id = "odom"
+
+    # since all odometry is 6DOF we'll need a quaternion created from yaw
+    odom_quat = tf.transformations.quaternion_from_euler(0, 0, yaw_raw)
+
+    # set the position
+    drone_odom.pose.pose = Pose(Vector3(current_x,y_raw,z_raw), Quaternion(*odom_quat))
+
+    tf_br = tf.TransformBroadcaster()
+    tf_br.sendTransform(
+                  (current_x,y_raw,z_raw), 
+                  odom_quat, 
+                  drone_odom.header.stamp, 
+                  "odom_nav",
+                  "odom") #world
+
     last_time = current_time
+    Keyframe += 1
+
+    odom_drone_pub.publish(drone_odom)
     rate.sleep()
 
 def callbackNavHough(data):
@@ -240,6 +281,7 @@ if __name__ == '__main__':
   rcnn_sub = rospy.Subscriber('rcnn/nav_position', Vector3, callbackRCNN, queue_size=10)
 
   # create the important publishers
+  odom_drone_pub = rospy.Publisher("navigation/nav_odom",Odometry, queue_size = 10)
   cam_pub = rospy.Publisher("bebop/camera_control",Twist, queue_size = 10)
   vel_drone_pub = rospy.Publisher("bebop/cmd_vel",Twist, queue_size = 10)
 
@@ -289,35 +331,3 @@ if __name__ == '__main__':
 
   except rospy.ROSInterruptException:
     print('Erro')
-
-#########################################################
-
-        
-        # current_time = rospy.Time.now()
-        # last_time = rospy.Time.now()
-        # current_x = 0
-        # last_x = 0
-        # Vref = 0.02
-        # Vcx = 0
-
-        # r = rospy.Rate(100.0)
-        # while not rospy.is_shutdown():
-        #     current_time = rospy.Time.now()
-        #     current_x = self.msg_nav.y
-
-        #     # compute dt and Vc, given the velocity of the drone
-        #     dt = (current_time - last_time).to_sec()
-        #     Vcy = (current_x - last_x)/dt
-        #     Vout_y = (Vref - Vcy)
-
-        #     rospy.logdebug("Vout_x (out): %f", Vout_y)
-        #     rospy.logdebug("X Filtrada (out): %f", self.msg_nav.y)
-        #     rospy.logdebug("Z Filtred (out): %f", self.msg_nav.z)
-        #     rospy.logdebug("--------------------------------")
-
-        #     self.rcnn_pub.publish(self.msg_nav)
-
-        #     last_time = current_time
-        #     last_x = current_x
-        #     r.sleep()
-
