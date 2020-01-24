@@ -141,19 +141,19 @@ class RCNN:
             if len(list_negativey) > 0:
                 # mean of list x-
                 medy_ant_n = sum(list_negativey)/len(list_negativey)
-                #rospy.logdebug("position.neg.y: %f", medy_ant_n)
-                msg_nav.y = medy_ant_n
+                # rospy.logdebug("negativey == True: %f", medy_ant_n)
+                msg_nav.x = medy_ant_n
 
             # negativey == False and positivey == True
             elif len(list_positivey) > 0 and len(list_negativey) == 0:
                 # mean of list x+
                 medy_ant_p = sum(list_positivey)/len(list_positivey)
-                # rospy.logdebug("position.pos.y: %f", medy_ant_p)
-                msg_nav.y = medy_ant_p
+                # rospy.logdebug("negativey == False and positivey == True: %f", medy_ant_p)
+                msg_nav.x = medy_ant_p
             else:
-                msg_nav.y = 0
-                # rospy.logdebug("No position y: %f", msg_nav.y)
-                # rospy.logdebug("--------------------------------")
+                msg_nav.x = 0
+                # rospy.logdebug("negativey == False and positivey == False: %f", msg_nav.x)
+                rospy.logdebug("--------------------------------")
 
         self.rcnn_pub.publish(msg_nav)
         # rospy.logdebug("Altura Filtrada (out): %f", msg_nav.z)
@@ -179,29 +179,41 @@ class RCNN:
         center_x = int((dimensions[1] + dimensions [3])*img_width/2)
         center_y = int((dimensions[0] + dimensions[2])*img_height/2)
 
-        ###################################
+        ###################################################################################
+
         pixelDiametro = size_x
         # choose the bigest size
         if(size_y > size_x):
             pixelDiametro = size_y
 
-        #metersDiametroLandmarck = self.DIAMETER_LANDMARCK_M
-        metersDiametroLandmarck = 0.3
+        ###################################################################################
 
-        #distFocus_real = self.DISTANCE_FOCAL
-        distFocus_real = 740
+        if self.VERBOSE == True:
+            rospy.logdebug("size_x:      %f", size_x)
+            rospy.logdebug("size_y:      %f", size_y)
+            rospy.logdebug("center_x:    %f", center_x)
+            rospy.logdebug("center_y:    %f", center_y)
+            rospy.logdebug("--------------------------------------------")
+
+        metersDiametroLandmarck = self.DIAMETER_LANDMARCK_M
+        #metersDiametroLandmarck = 0.03
+
+        distFocus_real = self.DISTANCE_FOCAL
+        #distFocus_real = 740
 
         z_real = float((metersDiametroLandmarck * distFocus_real) / pixelDiametro)
 
         pixel_x = int((center_x-(img_width/2))*(-1))
         pixel_y = int((center_y-(img_height/2))*(1))
 
-        # if self.VERBOSE == True:
-        #     rospy.logdebug("Diametro Marcador Real (instante):  %f", metersDiametroLandmarck)
-        #     rospy.logdebug("Distancia Focal Real:    %f", distFocus_real)
-        #     rospy.logdebug("Diametro (pixel):        %f", pixelDiametro)
-        #     rospy.logdebug("Altura Drone (instante):        %f", z_real)
-        #     rospy.logdebug("--------------------------------")
+        ###################################################################################
+
+        if self.VERBOSE == True:
+            rospy.logdebug("Diametro Marcador Real (instante):  %f", metersDiametroLandmarck)
+            rospy.logdebug("Distancia Focal Real:               %f", distFocus_real)
+            rospy.logdebug("Diametro (pixel):                   %f", pixelDiametro)
+            rospy.logdebug("Z Drone (real):                     %f (m)", z_real)
+            rospy.logdebug("--------------------------------------------")
 
         ###################################################################################
         

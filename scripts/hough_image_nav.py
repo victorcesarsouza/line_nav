@@ -28,6 +28,7 @@ class hough_lines:
     #-- Create a supscriber from topic "image_raw"
     self.image_sub = rospy.Subscriber("bebop/image_raw/compressed", CompressedImage, self.callback, queue_size = 1)
     
+    self.list_hough = []
     self.ky = 52
 
     self.MIN_EDGE = rospy.get_param('~min_edge', 150)
@@ -151,6 +152,18 @@ class hough_lines:
     # rospy.logdebug("-------------------------")
     ####################################################
 
+    # Filter yaw
+    # if len(self.list_hough) < 1:
+    #     self.list_hough.append(yaw)
+        
+    # else:
+    #     self.list_hough.append(yaw)
+    #     del self.list_hough[0]
+    #     yaw_filtered = sum(self.list_hough)/len(self.list_hough)
+    #     rospy.logdebug('Size of list_hough %f',len(self.list_hough))
+    #     rospy.logdebug('Yaw (Filter): %f deg/s',yaw_filtered)
+    #     rospy.logdebug("-------------------------")
+
 
     nav_drone = Twist()
 
@@ -170,6 +183,9 @@ class hough_lines:
       nav_drone.angular.x = 0
       nav_drone.angular.y = 0
       nav_drone.angular.z = 0
+
+    # rospy.logdebug('Yaw Raw: %f deg/s',yaw)
+    # rospy.logdebug("-------------------------")
 
     try:
       self.nav_hough_lines_pub.publish(nav_drone)
