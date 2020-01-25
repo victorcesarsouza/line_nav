@@ -1,16 +1,18 @@
 <launch>
 
-<!-- 	<arg name="min"  default="350"/>
-  	<arg name="max"  default="400"/> -->
+	<arg name="min"  default="350"/>
+  	<arg name="max"  default="400"/>
 
 	<node pkg= "line_nav" name="hough_image_nav" type="hough_image_nav.py"  output="screen" >
-		<!-- <param name="min_edge" value="$(arg min)"/> -->
-		<!-- <param name="max_edge" value="$(arg max)"/> -->
+		<param name="min_edge" value="$(arg min)"/>
+		<param name="max_edge" value="$(arg max)"/>
 	</node>
 
 	<node pkg= "line_nav" name="callRNN_direction" type="callRNN_direction.py"  output="screen" />
 
 	<node pkg= "line_nav" name="img_RCNN_pose" type="img_RCNN_pose.py"  output="screen" />
+
+	<!-- <node pkg= "line_nav" name="img_RCNN_pose" type="img_RCNN_pose_compressed.py"  output="screen" /> -->
 
 	<node pkg= "line_nav" name="fusion_rnn_hough" type="fusion_rnn_hough.py"  output="screen" />
 

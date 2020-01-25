@@ -16,8 +16,7 @@ except ImportError:
     sys.exit(1)
 
 # ROS related imports
-from sensor_msgs.msg import Image
-from cv_bridge import CvBridge, CvBridgeError
+from sensor_msgs.msg import CompressedImage
 from geometry_msgs.msg import Twist, Vector3
 
 # Object detection module imports
@@ -66,16 +65,15 @@ config = tf.ConfigProto()
 config.gpu_options.per_process_gpu_memory_fraction = GPU_FRACTION
 
 # RCNN
-class RCNN:
+class RCNN_Compressed:
 
     def __init__(self):
 
-        self.image_pub = rospy.Publisher("rcnn/debug_image",Image, queue_size=1)
+        self.image_pub = rospy.Publisher("rcnn/debug_image/compressed",CompressedImage, queue_size=1)
         self.rcnn_pub = rospy.Publisher('rcnn/nav_position', Vector3, queue_size=1)
 
         # Create a supscriber from topic "image_raw"
-        self.bridge = CvBridge()
-        self.image_sub = rospy.Subscriber("bebop/image_raw", Image, self.image_callback, queue_size=1)
+        self.image_sub = rospy.Subscriber("bebop/image_raw/compressed", CompressedImage, self.image_callback, queue_size=1)
         self.sess = tf.Session(graph=detection_graph,config=config)
 
         self.DIAMETER_LANDMARCK_M = rospy.get_param('~markerSize_RCNN', 0.03)
@@ -92,11 +90,8 @@ class RCNN:
 
     def image_callback(self, data):
 
-        try:
-            cv_image = self.bridge.imgmsg_to_cv2(data, "bgr8")
-        except CvBridgeError as e:
-            print(e)
-        image = cv2.cvtColor(cv_image,cv2.COLOR_BGR2RGB)
+        np_arr = np.fromstring(data.data, np.uint8)
+        image = cv2.imdecode(np_arr, cv2.IMREAD_COLOR) # OpenCV >= 3.0:
         
         #-- Print 'X' in the center of the camera
         image_height,image_width,channels = image.shape
@@ -170,17 +165,14 @@ class RCNN:
         # rospy.logdebug("--------------------------------")
 
         ########################################################################################
-        img=cv2.cvtColor(image_np, cv2.COLOR_BGR2RGB)
-        image_out = Image()
 
-        try:
-            image_out = self.bridge.cv2_to_imgmsg(img,"bgr8")
-        except CvBridgeError as e:
-            print(e)
-
-        image_out.header = data.header
-        self.image_pub.publish(image_out)
-
+        #### Create CompressedIamge ####
+        msg = CompressedImage()
+        #msg.header.stamp = data_ros.header.stamp
+        msg.format = "jpeg"
+        msg.data = np.array(cv2.imencode('.jpg', image)[1]).tostring()
+        # Publish new image
+        self.image_pub.publish(msg)
 
 
     def object_predict(self,object_data,img_height,img_width,list_positivey,list_negativey,list_z):
@@ -244,8 +236,8 @@ class RCNN:
         list_z.append(pointz)
 
 def main(args):
-    rospy.init_node('rcnn_pose_node', log_level=rospy.DEBUG)
-    rcnn_pose = RCNN()
+    rospy.init_node('rcnn_pose_compressed_node', log_level=rospy.DEBUG)
+    rcnn_pose_compressed = RCNN_Compressed()
     
     try:
         rospy.spin()
