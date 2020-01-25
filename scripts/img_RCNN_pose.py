@@ -34,6 +34,7 @@ GPU_FRACTION = 0.0
 MODEL_NAME =  'modo_congelado'
 # By default models are stored in data/models/
 MODEL_PATH = os.path.join(os.path.dirname(sys.path[0]),'data','models' , MODEL_NAME)
+print(MODEL_PATH)
 # Path to frozen detection graph. This is the actual model that is used for the object detection.
 PATH_TO_CKPT = MODEL_PATH + '/frozen_inference_graph.pb'
 ######### Set the label map file here ###########
@@ -77,8 +78,8 @@ class RCNN:
 
         self.DIAMETER_LANDMARCK_M = rospy.get_param('~markerSize_RCNN', 0.03)
         self.DISTANCE_FOCAL = rospy.get_param('~distance_focal', 740)
-        self.MAX_NUMBER_OF_BOXES = rospy.get_param('~max_number_of_boxes', 6)
-        self.MINIMUM_CONFIDENCE = rospy.get_param('~minimum_confidence', 0.95)
+        self.MAX_NUMBER_OF_BOXES = rospy.get_param('~max_number_of_boxes', 1)
+        self.MINIMUM_CONFIDENCE = rospy.get_param('~minimum_confidence', 0.99)
 
         self.VERBOSE = False
 
@@ -114,12 +115,14 @@ class RCNN:
         (boxes, scores, classes, num) = self.sess.run([detection_boxes, detection_scores, detection_classes, num_detections],
             feed_dict={image_tensor: image_np_expanded})
 
+        print(type(boxes))
         objects=vis_util.visualize_boxes_and_labels_on_image_array(
             image,
             np.squeeze(boxes),
             np.squeeze(classes).astype(np.int32),
             np.squeeze(scores),
             category_index,
+            max_boxes_to_draw=self.MAX_NUMBER_OF_BOXES,
             min_score_thresh=self.MINIMUM_CONFIDENCE,
             use_normalized_coordinates=True,
             line_thickness=5)
@@ -198,11 +201,11 @@ class RCNN:
             rospy.logdebug("center_y:    %f", center_y)
             rospy.logdebug("--------------------------------------------")
 
-        metersDiametroLandmarck = self.DIAMETER_LANDMARCK_M
-        #metersDiametroLandmarck = 0.03
+        #metersDiametroLandmarck = self.DIAMETER_LANDMARCK_M
+        metersDiametroLandmarck = 0.03
 
-        distFocus_real = self.DISTANCE_FOCAL
-        #distFocus_real = 740
+        #distFocus_real = self.DISTANCE_FOCAL
+        distFocus_real = 740
 
         z_real = float((metersDiametroLandmarck * distFocus_real) / pixelDiametro)
 

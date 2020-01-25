@@ -9,10 +9,8 @@ import cv2
 import numpy as np
 import rospy
 import roslib
-import math
 roslib.load_manifest('line_nav')
 
-from sensor_msgs.msg import Image
 from sensor_msgs.msg import CompressedImage
 from geometry_msgs.msg import Twist
 
@@ -29,11 +27,11 @@ class hough_lines:
     #-- Create a supscriber from topic "image_raw"
     self.image_sub = rospy.Subscriber("bebop/image_raw/compressed", CompressedImage, self.callback, queue_size = 1)
     
-    self.list_hough = []
+    # self.list_hough = []
     self.ky = 52
 
-    self.MIN_EDGE = rospy.get_param('~min_edge', 150)
-    self.MAX_EDGE = rospy.get_param('~max_edge', 200)
+    self.MIN_EDGE = rospy.get_param('~min_edge', 350)
+    self.MAX_EDGE = rospy.get_param('~max_edge', 400)
 
     rospy.loginfo("%s is %f (defaut)", rospy.resolve_name('~min_edge'), self.MIN_EDGE)
     rospy.loginfo("%s is %f (defaut)", rospy.resolve_name('~max_edge'), self.MAX_EDGE)
@@ -49,7 +47,6 @@ class hough_lines:
     lines_vector = [0, 0, 0]
 
     np_arr = np.fromstring(data.data, np.uint8)
-    #image_np = cv2.imdecode(np_arr, cv2.CV_LOAD_IMAGE_COLOR)
     image_np = cv2.imdecode(np_arr, cv2.IMREAD_COLOR) # OpenCV >= 3.0:
 
     # (rows,cols,channels) = image_np.shape
@@ -59,7 +56,7 @@ class hough_lines:
 
     #-- Resize image with INTER_CUBIC
     resize = cv2.resize(image_np, (224, 224), interpolation=cv2.INTER_CUBIC)
-    resize2 = cv2.resize(image_np, (224, 224), interpolation=cv2.INTER_CUBIC)
+    # resize2 = cv2.resize(image_np, (224, 224), interpolation=cv2.INTER_CUBIC)
 
 
     #-- Convert in gray scale
@@ -133,7 +130,7 @@ class hough_lines:
     # rospy.logdebug("-------------------------")
 
     # y in the drone of ROS = X in the image
-    y_correction = float(mediana - erosion.shape[1]/2)/self.ky
+    y_correction = float(mediana - resize.shape[1]/2)/self.ky
 
     #rospy.logdebug("half_img: %f",erosion.shape[1]/2)
     #rospy.logdebug("mediana: %f",mediana)
@@ -245,7 +242,7 @@ def main(args):
   except KeyboardInterrupt:
       print("Shutting down")
 
-  cv2.destroyAllWindows()
+  #cv2.destroyAllWindows()
 
 ###############################################################################
    

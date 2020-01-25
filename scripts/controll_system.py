@@ -166,7 +166,7 @@ def autoNavigation():
     # rospy.logdebug('z_raw: %f',z_raw)
     #Erro of Z
     erro_z = float(set_point - z_raw)
-    #rospy.loginfo("erro_z %f", erro_z)
+    # rospy.loginfo("erro_z %f", erro_z)
 
     if abs(erro_z) > 0.1:
         new_z = kpz*erro_z + Kiz*int_error_z + Kdz*(erro_z-last_error_z)
