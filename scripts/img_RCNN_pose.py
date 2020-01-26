@@ -80,7 +80,7 @@ class RCNN:
 
         self.DIAMETER_LANDMARCK_M = rospy.get_param('~markerSize_RCNN', 0.03)
         self.DISTANCE_FOCAL = rospy.get_param('~distance_focal', 740)
-        self.MAX_NUMBER_OF_BOXES = rospy.get_param('~max_number_of_boxes', 1)
+        self.MAX_NUMBER_OF_BOXES = rospy.get_param('~max_number_of_boxes', 3)
         self.MINIMUM_CONFIDENCE = rospy.get_param('~minimum_confidence', 0.99)
 
         self.VERBOSE = False

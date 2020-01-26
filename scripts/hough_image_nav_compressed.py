@@ -11,8 +11,7 @@ import rospy
 import roslib
 roslib.load_manifest('line_nav')
 
-from sensor_msgs.msg import Image
-from cv_bridge import CvBridge, CvBridgeError
+from sensor_msgs.msg import CompressedImage
 from geometry_msgs.msg import Twist
 
 class hough_lines:
@@ -22,18 +21,17 @@ class hough_lines:
     self.nav_hough_lines_pub = rospy.Publisher("hough/nav_hough_lines",Twist, queue_size = 1)
     
     #self.image_raw_pub = rospy.Publisher("hough/image_raw/compressed", CompressedImage, queue_size = 1)
-    self.image_hough_pub = rospy.Publisher("hough/image_hough", Image, queue_size = 1)    
-    self.image_edge_pub = rospy.Publisher("hough/image_edge", Image, queue_size = 1)
+    self.image_edge_pub = rospy.Publisher("hough/image_edge/compressed", CompressedImage, queue_size = 1)
+    self.image_hough_pub = rospy.Publisher("hough/image_hough/compressed", CompressedImage, queue_size = 1)
 
     #-- Create a supscriber from topic "image_raw"
-    self.bridge = CvBridge()
-    self.image_sub = rospy.Subscriber("bebop/image_raw", Image, self.callback, queue_size = 1)
+    self.image_sub = rospy.Subscriber("bebop/image_raw/compressed", CompressedImage, self.callback, queue_size = 1)
     
     # self.list_hough = []
     self.ky = 52
 
-    self.MIN_EDGE = rospy.get_param('~min_edge', 100)
-    self.MAX_EDGE = rospy.get_param('~max_edge', 150)
+    self.MIN_EDGE = rospy.get_param('~min_edge', 350)
+    self.MAX_EDGE = rospy.get_param('~max_edge', 400)
 
     rospy.loginfo("%s is %f (defaut)", rospy.resolve_name('~min_edge'), self.MIN_EDGE)
     rospy.loginfo("%s is %f (defaut)", rospy.resolve_name('~max_edge'), self.MAX_EDGE)
@@ -48,11 +46,8 @@ class hough_lines:
     med_theta = 0
     lines_vector = [0, 0, 0]
 
-    try:
-        cv_image = self.bridge.imgmsg_to_cv2(data, "bgr8")
-    except CvBridgeError as e:
-        print(e)
-    image_np = cv2.cvtColor(cv_image,cv2.COLOR_BGR2RGB)
+    np_arr = np.fromstring(data.data, np.uint8)
+    image_np = cv2.imdecode(np_arr, cv2.IMREAD_COLOR) # OpenCV >= 3.0:
 
     # (rows,cols,channels) = image_np.shape
     # rospy.logdebug("rows: %f",rows)
@@ -61,6 +56,8 @@ class hough_lines:
 
     #-- Resize image with INTER_CUBIC
     resize = cv2.resize(image_np, (224, 224), interpolation=cv2.INTER_CUBIC)
+    # resize2 = cv2.resize(image_np, (224, 224), interpolation=cv2.INTER_CUBIC)
+
 
     #-- Convert in gray scale
     gray = cv2.cvtColor(resize, cv2.COLOR_BGR2GRAY) #-- remember, OpenCV stores color images in Blue, Green, Red
@@ -192,7 +189,7 @@ class hough_lines:
       self.nav_hough_lines_pub.publish(nav_drone)
       #rospy.logdebug('Is publish!')
     except:
-      rospy.logdebug('No publish lines!')
+      rospy.logdebug('No publish!')
 
     #cv2.imshow("Image",src_image)
     #cv2.imshow("Image-edges",edges)
@@ -204,12 +201,33 @@ class hough_lines:
     # cv2.imshow("Image-erosion",erosion)
     # cv2.waitKey(1)
 
+    # ### Create CompressedIamge ####
+    # msg1 = CompressedImage()
+    # #msg1.header.stamp = rospy.rostime.get_rostime()
+    # msg1.format = "jpeg"
+    # msg1.data = np.array(cv2.imencode('.jpg', image_np)[1]).tostring()
+
+    ## Create CompressedIamge ####
+    msg2 = CompressedImage()
+    #msg2.header.stamp = rospy.rostime.get_rostime()
+    msg2.format = "jpeg"
+    msg2.data = np.array(cv2.imencode('.jpg', erosion)[1]).tostring()
+
+    ## Create CompressedIamge ####
+    msg3 = CompressedImage()
+    #msg3.header.stamp = rospy.rostime.get_rostime()
+    msg3.format = "jpeg"
+    msg3.data = np.array(cv2.imencode('.jpg', resize)[1]).tostring()
+
+
+    # Publish new image
     try:
-        self.image_hough_pub.publish(self.bridge.cv2_to_imgmsg(resize, "bgr8"))
-        self.image_edge_pub.publish(self.bridge.cv2_to_imgmsg(edges, "mono8"))
-    except CvBridgeError as e:
-        print(e)
-        rospy.logdebug('No publish img!')
+      # self.image_raw_pub.publish(msg1)
+      self.image_edge_pub.publish(msg2)
+      self.image_hough_pub.publish(msg3)
+
+    except:
+      rospy.logdebug('No publish img!')
 
 ###############################################################################
 

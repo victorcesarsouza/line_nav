@@ -13,7 +13,7 @@ import cPickle
 # ROS related imports
 import rospy
 from sensor_msgs.msg import Image
-from cv_bridge import CvBridge, CvBridgeError
+from sensor_msgs.msg import CompressedImage
 from geometry_msgs.msg import Twist, Vector3
 
 PARAMETERS_PATH = os.path.join(os.path.dirname(sys.path[0]),'data','Parameters')
@@ -40,18 +40,17 @@ class lines:
     self.rnn_pub = rospy.Publisher('RNN/nav_direction', Vector3, queue_size=1)
 
     #-- Create a supscriber from topic "image_raw"
-    self.bridge = CvBridge()
-    self.image_sub = rospy.Subscriber("hough/image_edge", Image, self.callback, queue_size = 1)
+    self.image_sub = rospy.Subscriber("hough/image_edge/compressed", CompressedImage, self.callback, queue_size = 1)
 
 ###############################################################################
    
   def callback(self,data):
+
     # rospy.logdebug('received image of type: "%s"' % data.format)
-    try:
-        image_np_gray = self.bridge.imgmsg_to_cv2(data, "mono8")
-    except CvBridgeError as e:
-        print(e)
-    # image_np_gray = cv2.cvtColor(cv_image,cv2.COLOR_BGR2GRAY)
+
+    np_arr = np.fromstring(data.data, np.uint8)
+    #image_np = cv2.imdecode(np_arr, cv2.CV_LOAD_IMAGE_COLOR)
+    image_np_gray = cv2.imdecode(np_arr, cv2.IMREAD_GRAYSCALE) # OpenCV >= 3.0:
 
     num_px = 224
     dim = (224, 224)
@@ -127,12 +126,12 @@ class lines:
                 rospy.logdebug('------------------------------')
 
     msg_navigation = Vector3()
-    msg_navigation.x = 0#self.moviment
+    msg_navigation.x = self.moviment
     msg_navigation.y = self.rotation
     msg_navigation.z = 0
 
-    # cv2.imshow("Image-edges",image_np_gray)
-    # cv2.waitKey(1)
+    #cv2.imshow("Image-edges",image_np_gray)
+    #cv2.waitKey(1)
 
     try:
       self.rnn_pub.publish(msg_navigation)
