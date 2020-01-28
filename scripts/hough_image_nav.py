@@ -32,8 +32,8 @@ class hough_lines:
     # self.list_hough = []
     self.ky = 52
 
-    self.MIN_EDGE = rospy.get_param('~min_edge', 100)
-    self.MAX_EDGE = rospy.get_param('~max_edge', 150)
+    self.MIN_EDGE = rospy.get_param('~min_edge', 300)
+    self.MAX_EDGE = rospy.get_param('~max_edge', 350)
 
     rospy.loginfo("%s is %f (defaut)", rospy.resolve_name('~min_edge'), self.MIN_EDGE)
     rospy.loginfo("%s is %f (defaut)", rospy.resolve_name('~max_edge'), self.MAX_EDGE)
@@ -49,10 +49,10 @@ class hough_lines:
     lines_vector = [0, 0, 0]
 
     try:
-        cv_image = self.bridge.imgmsg_to_cv2(data, "bgr8")
+        image_np = self.bridge.imgmsg_to_cv2(data, "bgr8")
     except CvBridgeError as e:
         print(e)
-    image_np = cv2.cvtColor(cv_image,cv2.COLOR_BGR2RGB)
+    # image_np = cv2.cvtColor(cv_image,cv2.COLOR_BGR2RGB)
 
     # (rows,cols,channels) = image_np.shape
     # rospy.logdebug("rows: %f",rows)
@@ -198,15 +198,14 @@ class hough_lines:
     #cv2.imshow("Image-edges",edges)
     
     #cv2.imshow("Image-blur",blur)
-    #cv2.imshow("Image-blur2",blur2)
 
-    # cv2.imshow("Image-dilation",dilation)
-    # cv2.imshow("Image-erosion",erosion)
-    # cv2.waitKey(1)
+    #cv2.imshow("Image-dilation",dilation)
+    #cv2.imshow("Image-erosion",erosion)
+    #cv2.waitKey(1)
 
     try:
         self.image_hough_pub.publish(self.bridge.cv2_to_imgmsg(resize, "bgr8"))
-        self.image_edge_pub.publish(self.bridge.cv2_to_imgmsg(edges, "mono8"))
+        self.image_edge_pub.publish(self.bridge.cv2_to_imgmsg(erosion, "mono8"))
     except CvBridgeError as e:
         print(e)
         rospy.logdebug('No publish img!')

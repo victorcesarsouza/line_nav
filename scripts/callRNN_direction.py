@@ -127,7 +127,7 @@ class lines:
                 rospy.logdebug('------------------------------')
 
     msg_navigation = Vector3()
-    msg_navigation.x = 0#self.moviment
+    msg_navigation.x = self.moviment
     msg_navigation.y = self.rotation
     msg_navigation.z = 0
 

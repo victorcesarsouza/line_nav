@@ -94,7 +94,7 @@ def autoNavigation():
     #######################################################################
     
     #Gain controll X
-    Kpx = 0.5  #0.07
+    Kpx = 0.05  #0.07
     Kix = 0.05  #0.0001
     Kdx = 0.005  #0.5
     #Erro of Vx
@@ -115,7 +115,7 @@ def autoNavigation():
     # rospy.loginfo('erro_vx: %f',erro_vx)
 
     if abs(erro_vx) > 0.005:
-        new_x = Kpx*erro_vx + Kix*int_error_x + Kdx*(erro_vx-last_error_x)
+        new_x = Kpx*erro_vx #+ Kix*int_error_x + Kdx*(erro_vx-last_error_x)
         int_error_x += erro_vx
         last_error_x = erro_vx
         #rospy.loginfo('new_x: %f',new_x)
@@ -139,7 +139,7 @@ def autoNavigation():
     #rospy.loginfo('y_raw: %f',y_raw)
     erro_y = y_raw
     if abs(erro_y) > 0.1:
-        new_y = Kpy*erro_y + Kiy*int_error_y # + Kdy*(erro_y-last_error_y)
+        new_y = Kpy*erro_y #+ Kiy*int_error_y # + Kdy*(erro_y-last_error_y)
         int_error_y += erro_y
         last_error_y = erro_y
         #rospy.loginfo('new_y: %f',new_y)
@@ -205,19 +205,19 @@ def autoNavigation():
     
     velocity = Twist()
 
-    # if init == True:
-    #   for i in range(100):
-    #     velocity = Twist()
-    #     velocity.linear.y = -0.05
-    #     velocity.linear.z = 2
-    #     vel_drone_pub.publish(velocity)
-    #     rospy.loginfo('Z: SUBINDO!')
-    #     rate.sleep()
+    if init == True:
+      for i in range(100):
+        velocity = Twist()
+        velocity.linear.x = 0.0
+        velocity.linear.z = 1
+        vel_drone_pub.publish(velocity)
+        rospy.loginfo('Z: SUBINDO!')
+        rate.sleep()
 
     init = False
-
+ 
     # rospy.loginfo("Navigation")
-    velocity.linear.x = 0#new_x
+    velocity.linear.x = vel_hough.linear.x
     velocity.linear.y = new_y
     velocity.linear.z = 0#new_z
 
@@ -225,7 +225,7 @@ def autoNavigation():
     velocity.angular.y = 0
     velocity.angular.z = math.radians(new_yaw)
 
-    rospy.loginfo('vel_linear  x: %f', 0)#new_x)
+    rospy.loginfo('vel_linear  x: %f', vel_hough.linear.x)
     rospy.loginfo('vel_linear  y: %f', new_y)
     rospy.loginfo('vel_linear  z: %f', 0)#new_z)
     rospy.loginfo('vel_angular z: %f', new_yaw)
