@@ -105,7 +105,7 @@ def autoNavigation():
         current_x = Vref
         Vcx = 0.02
         # rospy.loginfo('current_x Nonve! Call Vref')
-    # rospy.loginfo('current_x: %f',current_x)
+    rospy.loginfo('current_x: %f',current_x)
 
     if init == False and dt > 0 and Vcx != Vref:
         Vcx = float((current_x-last_x)/dt)
@@ -131,7 +131,7 @@ def autoNavigation():
 
     #######################################################################
     #Gain controll Y
-    Kpy = 0.05  #0.05
+    Kpy = 0.07  #0.05
     Kiy = 0.00005  #0.00005
     Kdy = 0.000005  #0.5
     #Erro of Y
@@ -169,7 +169,7 @@ def autoNavigation():
     # rospy.loginfo("erro_z %f", erro_z)
 
     if abs(erro_z) > 0.1:
-        new_z = kpz*erro_z + Kiz*int_error_z + Kdz*(erro_z-last_error_z)
+        new_z = kpz*erro_z #+ Kiz*int_error_z + Kdz*(erro_z-last_error_z)
         int_error_z += erro_z
         last_error_z = erro_z
         #rospy.loginfo("Correction Z %f", new_z)
@@ -205,31 +205,31 @@ def autoNavigation():
     
     velocity = Twist()
 
-    if init == True:
-      for i in range(100):
-        velocity = Twist()
-        velocity.linear.x = 0.0
-        velocity.linear.z = 1
-        vel_drone_pub.publish(velocity)
-        rospy.loginfo('Z: SUBINDO!')
-        rate.sleep()
+    # if init == True:
+    #   for i in range(100):
+    #     velocity = Twist()
+    #     velocity.linear.x = 0.0
+    #     velocity.linear.z = 1
+    #     vel_drone_pub.publish(velocity)
+    #     rospy.loginfo('Z: SUBINDO!')
+    #     rate.sleep()
 
     init = False
  
     # rospy.loginfo("Navigation")
     velocity.linear.x = vel_hough.linear.x
     velocity.linear.y = new_y
-    velocity.linear.z = 0#new_z
+    velocity.linear.z = new_z
 
     velocity.angular.x = 0
     velocity.angular.y = 0
     velocity.angular.z = math.radians(new_yaw)
 
-    rospy.loginfo('vel_linear  x: %f', vel_hough.linear.x)
-    rospy.loginfo('vel_linear  y: %f', new_y)
-    rospy.loginfo('vel_linear  z: %f', 0)#new_z)
-    rospy.loginfo('vel_angular z: %f', new_yaw)
-    rospy.loginfo("-------------------------")
+    # rospy.loginfo('vel_linear  x: %f', vel_hough.linear.x)
+    # rospy.loginfo('vel_linear  y: %f', new_y)
+    # rospy.loginfo('vel_linear  z: %f', new_z)
+    # rospy.loginfo('vel_angular z: %f', new_yaw)
+    # rospy.loginfo("-------------------------")
 
     vel_drone_pub.publish(velocity)
 

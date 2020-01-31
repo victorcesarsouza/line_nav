@@ -68,7 +68,7 @@ class lines:
         rospy.logdebug('out2: %f"', out2)
         rospy.logdebug('------------------------------')
 
-    size_filter = 15
+    size_filter = 20 #15
     # Filter self.moviment
     if len(self.list_moviment) < size_filter:
         self.list_moviment.append(out1)

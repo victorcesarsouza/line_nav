@@ -50,31 +50,31 @@ class Navigation:
 
             if rotation == 1:
                 velocity.linear.x = 0
-                velocity.linear.y = 2
+                velocity.linear.y = 1
                 velocity.linear.z = 0
 
                 velocity.angular.x = 0
                 velocity.angular.y = 0
-                velocity.angular.z = math.radians(30)
+                velocity.angular.z = math.radians(15)
                 if self.VERBOSE == True:
                     rospy.logdebug("...Left-yaw: %f deg/s",velocity.angular.z*(180/np.pi))
                     rospy.logdebug("-------------------------")
 
             else:
                 velocity.linear.x = 0
-                velocity.linear.y = -2
+                velocity.linear.y = -1
                 velocity.linear.z = 0
 
                 velocity.angular.x = 0
                 velocity.angular.y = 0
-                velocity.angular.z = math.radians(-30)
+                velocity.angular.z = math.radians(-15)
                 if self.VERBOSE == True:
                     rospy.logdebug("...Right-yaw: %f deg/s",velocity.angular.z*(180/np.pi))
                     rospy.logdebug("-------------------------")
         else:
             if self.VERBOSE == True:
                 rospy.logdebug("Reta")
-            velocity.linear.x = 0.02
+            velocity.linear.x = 0.03
             velocity.linear.y = -self.msg_hough.linear.y
             velocity.linear.z = 0
 

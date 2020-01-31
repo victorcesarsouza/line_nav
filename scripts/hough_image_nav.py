@@ -32,8 +32,8 @@ class hough_lines:
     # self.list_hough = []
     self.ky = 52
 
-    self.MIN_EDGE = rospy.get_param('~min_edge', 300)
-    self.MAX_EDGE = rospy.get_param('~max_edge', 350)
+    self.MIN_EDGE = rospy.get_param('~min_edge', 450)   #470 sol  - 450 MELHOR  - 480  --
+    self.MAX_EDGE = rospy.get_param('~max_edge', 500)   #520 sol  - 500 MELHOR  - 530 --
 
     rospy.loginfo("%s is %f (defaut)", rospy.resolve_name('~min_edge'), self.MIN_EDGE)
     rospy.loginfo("%s is %f (defaut)", rospy.resolve_name('~max_edge'), self.MAX_EDGE)
