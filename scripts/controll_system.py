@@ -233,30 +233,30 @@ def autoNavigation():
 
     vel_drone_pub.publish(velocity)
 
-    drone_odom = Odometry()
-    drone_odom.header.stamp = rospy.Time.now()
-    drone_odom.header.frame_id = "odom_nav"
-    drone_odom.header.seq = Keyframe
-    drone_odom.child_frame_id = "odom"
+    # drone_odom = Odometry()
+    # drone_odom.header.stamp = rospy.Time.now()
+    # drone_odom.header.frame_id = "odom_nav"
+    # drone_odom.header.seq = Keyframe
+    # drone_odom.child_frame_id = "odom"
 
-    # since all odometry is 6DOF we'll need a quaternion created from yaw
-    odom_quat = tf.transformations.quaternion_from_euler(0, 0, yaw_raw)
+    # # since all odometry is 6DOF we'll need a quaternion created from yaw
+    # odom_quat = tf.transformations.quaternion_from_euler(0, 0, yaw_raw)
 
-    # set the position
-    drone_odom.pose.pose = Pose(Vector3(current_x,y_raw,z_raw), Quaternion(*odom_quat))
+    # # set the position
+    # drone_odom.pose.pose = Pose(Vector3(current_x,y_raw,z_raw), Quaternion(*odom_quat))
 
-    tf_br = tf.TransformBroadcaster()
-    tf_br.sendTransform(
-                  (current_x,y_raw,z_raw), 
-                  odom_quat, 
-                  drone_odom.header.stamp, 
-                  "odom_nav",
-                  "odom") #world
+    # tf_br = tf.TransformBroadcaster()
+    # tf_br.sendTransform(
+    #               (current_x,y_raw,z_raw), 
+    #               odom_quat, 
+    #               drone_odom.header.stamp, 
+    #               "odom_nav",
+    #               "odom") #world
+    # Keyframe += 1
+
+    # odom_drone_pub.publish(drone_odom)
 
     last_time = current_time
-    Keyframe += 1
-
-    odom_drone_pub.publish(drone_odom)
     rate.sleep()
 
 def callbackNavHough(data):
