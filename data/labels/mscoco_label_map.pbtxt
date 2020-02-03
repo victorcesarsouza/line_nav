@@ -1,5 +1,5 @@
 item {
-  name: 'Isolante'
+  name: 'Poste'
   id: 1
-  display_name: "Isolante1"
+  display_name: "Poste"
 }
