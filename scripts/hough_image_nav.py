@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from __future__ import print_function
+#from __future__ import print_function
 ## Author: Alan Tavares
 ## Date: August, 12, 2019
 # Purpose: Ros node to detect objects using tensorflow
@@ -8,8 +8,8 @@ import sys, time, math
 import cv2
 import numpy as np
 import rospy
-import roslib
-roslib.load_manifest('line_nav')
+#import roslib
+#roslib.load_manifest('line_nav')
 
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
@@ -32,8 +32,8 @@ class hough_lines:
     # self.list_hough = []
     self.ky = 52
 
-    self.MIN_EDGE = rospy.get_param('~min_edge', 450)   #470 sol  - 450 MELHOR  - 480  --
-    self.MAX_EDGE = rospy.get_param('~max_edge', 500)   #520 sol  - 500 MELHOR  - 530 --
+    self.MIN_EDGE = rospy.get_param('~min_edge', 250)   #470 sol  - 450 MELHOR  - 480  --
+    self.MAX_EDGE = rospy.get_param('~max_edge', 300)   #520 sol  - 500 MELHOR  - 530 --
 
     rospy.loginfo("%s is %f (defaut)", rospy.resolve_name('~min_edge'), self.MIN_EDGE)
     rospy.loginfo("%s is %f (defaut)", rospy.resolve_name('~max_edge'), self.MAX_EDGE)

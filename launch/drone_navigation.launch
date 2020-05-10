@@ -1,7 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <launch>
 
-	<arg name="min"  default="350"/>
-  	<arg name="max"  default="400"/>
+	<arg name="min"  default="250"/>
+  	<arg name="max"  default="300"/>
 
 	<node pkg= "line_nav" name="hough_image_nav" type="hough_image_nav.py"  output="screen" >
 		<param name="min_edge" value="$(arg min)"/>
